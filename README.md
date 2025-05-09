@@ -5,7 +5,7 @@ probably work on any EQ server).
 
 ![eq-dps-girl](https://github.com/ahungry/eq-dps-girl/blob/master/eq-dps-girl.gif)
 
-# Usage
+# Usage/Setup
 
 Using the design philosophy of a FF14 dps/hud (shown here):
 
@@ -36,6 +36,19 @@ hudkit http://localhost:12345 # make sure you have a compositor!
 NOTE: If you don't have a compositor running, `xcompmgr` is a super
 light weight one that doesn't cause VSync issues on the THJ EQ client
 (though it does on Diablo 4).
+
+NOTE: Don't forget to open up server.bb and edit the variables at the
+start to specify your own directories:
+
+```clojure
+(defonce *path* (str (System/getProperty "user.home") "/src/eq-dps-girl/"))
+(defonce *logpath* (str (System/getProperty "user.home") "/games/wine/thj-take2/drive_c/thj/Logs/"))
+```
+
+should be changed to be absolute paths on your OS (or relative under
+your home directory as shown for mine), such that the first value is
+matched up to where you're running this script from, while the second
+one is pointed to your Logs directory (don't forget to enable /log in game!).
 
 # TODO
 

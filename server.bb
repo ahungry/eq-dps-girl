@@ -18,12 +18,21 @@
            [java.time LocalDateTime]
            [java.io RandomAccessFile]))
 
-(defonce server (atom nil))
-(defonce *dps-inactivity-seconds* 3)
-(defonce *parse-interval* 50)
-(defonce *channel* (atom nil))
+;; FIXME: You must update these for your own system for now!
 (defonce *path* (str (System/getProperty "user.home") "/src/eq-dps-girl/"))
 (defonce *logpath* (str (System/getProperty "user.home") "/games/wine/thj-take2/drive_c/thj/Logs/"))
+
+;; NOTE: You can adjust these if you feel you're having performance issues
+;; but the parsing should always tail the log file and not re-read, so even
+;; massive files should be fine.
+;; The inactivity is the timer until dps-girl falls asleep after you leave combat,
+;; When she falls asleep, old combat data is purged and not part of the active meter.
+(defonce *dps-inactivity-seconds* 3)
+(defonce *parse-interval* 50)
+
+;; NOTE: Do not touch these or anything below this line
+(defonce server (atom nil))
+(defonce *channel* (atom nil))
 (defonce *stream* (atom false))
 
 (defn parse-date-to-epoch [date-string]
