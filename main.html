@@ -6,11 +6,11 @@
   <body>
     <div style="color:#000;">
       <div
-        style="font-size:0.6em;position: absolute; right: 80px; bottom: 150px;z-index:2;font-family: 'Comic Sans MS', 'Comic Sans', cursive;font-weight:bold;rotate:340deg;">
+        style="font-size:0.9em;position: absolute; right: 90px; bottom: 190px;z-index:2;font-family: 'Comic Sans MS', 'Comic Sans', cursive;font-weight:bold;rotate:340deg;">
         <span id="dps" style="font-size:1.8em;">???</span><span id="dps-label">zzz</span>
       </div>
-      <img src="bubble.png" style="width:150px;position:absolute;bottom:80px;right:30px;" />
-      <img id="dps-girl" src="girlz.png" style="width:120px;position:absolute;bottom:18px;right:0px;" />
+      <img src="bubble.png" style="width:150px;position:absolute;bottom:135px;right:60px;" />
+      <img id="dps-girl" src="girlz.png" style="width:160px;position:absolute;bottom:18px;right:0px;" />
     </div>
   </body>
   <script type="text/javascript">
@@ -20,15 +20,15 @@
 
      if (dps == "-1") {
        // If no dps is happening, she will sleep
-       dps = "ZZZZ"
+       dps = "ZZZ"
        document.getElementById("dps-girl").src = "girlz.png"
-       document.getElementById("dps-label").innerHTML="zzz"
+       document.getElementById("dps-label").innerHTML="zzzz"
      } else {
        // Randomly blink
        if (Math.random() > 0.03)
          document.getElementById("dps-girl").src = "girl.gif"
        else
-         document.getElementById("dps-girl").src = "girlz.png"
+         document.getElementById("dps-girl").src = "girlb.png"
        document.getElementById("dps-label").innerHTML="dps!"
      }
 		 document.getElementById("dps").innerHTML=dps
