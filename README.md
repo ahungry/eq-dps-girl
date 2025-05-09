@@ -16,8 +16,11 @@ http://localhost:12345, while the overlay functionality is available
 via one of the following:
 
 - GNU/Linux: https://github.com/anko/hudkit
-- Windows: https://github.com/Styr1x/Browsingway
-- Mac/OSX: https://www.iinact.com/bunnyhud/
+- Windows: https://github.com/Styr1x/Browsingway (this may be FF14
+  specific, so https://github.com/mobzystems/SeeThroughWindows could
+  be a better alternative)
+- Mac/OSX: https://www.iinact.com/bunnyhud/ (this may be FF14
+  specific, so need to find a better alternative)
 
 The web server does require Babashka (a Clojure runtime):
 
