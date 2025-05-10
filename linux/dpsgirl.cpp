@@ -25,9 +25,9 @@ std::wstring GetTimestamp() { return L"fake"; /* ... */ }
 int log(std::wstring msg) {
   std::wofstream logFile("dpsgirl.log", std::ios::app);
   if (logFile.is_open()) {
-    // ... write to the file ...
     logFile << msg << std::endl;
-    logFile.close(); // Remember to close the file
+    std::wcerr << msg << std::endl;
+    logFile.close();
   } else {
     std::wcerr << L"Unable to open file for writing." << std::endl;
   }
@@ -197,7 +197,7 @@ static gboolean on_draw(GtkWidget *widget, cairo_t *cr, gpointer user_data) {
     // Convert wstring to UTF-8 for Cairo
     std::string utf8_text;
     for (wchar_t wc : textToDraw) utf8_text += static_cast<char>(wc);
-    cairo_move_to(cr, 40 * scale, 70 * scale);
+    cairo_move_to(cr, 50 * scale, 90 * scale);
     cairo_show_text(cr, utf8_text.c_str());
 
     cairo_select_font_face(cr, "Arial", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
@@ -232,11 +232,11 @@ static gboolean on_timer(gpointer user_data) {
 
 // GTK button press event handler
 static gboolean on_button_press(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
-    if (event->button == GDK_BUTTON_PRESS) {
+    if (event->button == 1) {
         log(L"Left clicked!");
         sleeping ^= 1;
         gtk_widget_queue_draw(widget);
-    } else if (event->button == GDK_2BUTTON_PRESS) {
+    } else if (event->button == 3) {
         log(L"Right clicked!");
         gtk_main_quit();
     }
