@@ -189,6 +189,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
     std::wstring imageBpath = std::wstring(tempDir) + L"__girlb.png";
     std::wstring imageZpath = std::wstring(tempDir) + L"__girlz.png";
+    log(L"Image 1 Path: " + image1path);
     bitmap1 = Bitmap::FromFile(image1path.c_str());
     if (bitmap1->GetLastStatus() != Ok) {
       logError(L"Failed to load image1.png!");
@@ -221,13 +222,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     SetWindowLongPtr(hwnd, GWL_EXSTYLE,
                      GetWindowLongPtr(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 
-    //Make the window fully transparent.
-    SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
-    // SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
+    // Make the window fully transparent.
+    // SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
+    SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
     SetTimer(hwnd, 1, 100, nullptr);
     break;
   }
   case WM_PAINT: {
+    log(L"WM_PAINT was called...");
     hdc = BeginPaint(hwnd, &ps);
     Graphics graphics(hdc);
 
