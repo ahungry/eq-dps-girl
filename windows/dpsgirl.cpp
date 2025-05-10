@@ -229,7 +229,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     break;
   }
   case WM_PAINT: {
-    log(L"WM_PAINT was called...");
     hdc = BeginPaint(hwnd, &ps);
     Graphics graphics(hdc);
 
