@@ -57,3 +57,6 @@ clean:
 
 contours.bin:
 	g++ ./contours.cpp -Wall -o contours.bin $(shell pkg-config --libs --cflags opencv4) # && ./contours.bin >> dpsgirl.cpp
+
+dpsgirl.bin:
+	g++ -fdiagnostics-color=always ./dpsgirl_linux.cpp -Wall -o dpsgirl.bin $(shell pkg-config --libs --cflags cairo gtk+-3.0)
