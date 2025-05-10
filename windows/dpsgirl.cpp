@@ -70,6 +70,7 @@ int log(std::wstring msg)
   errno_t err = _wfopen_s(&logFile, logFileName.c_str(), L"a+"); // Open for appending
 
   if (logFile == nullptr) return -1;
+  if (err > 0) return -1;
 
   fwprintf(logFile, L"%ls - %ls\n", GetTimestamp().c_str(), msg.c_str());
   fflush(logFile); // Ensure the data is written immediately
@@ -182,8 +183,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
                      GetWindowLongPtr(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 
     //Make the window fully transparent.
-    // SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
-    SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
+    SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
+    // SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
     break;
   }
   case WM_PAINT: {
@@ -194,6 +195,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     EndPaint(hwnd, &ps);
     break;
   }
+  case WM_LBUTTONDOWN:
+    log(L"Left clicked!");
+    PostQuitMessage(0);
+    break;
   case WM_RBUTTONUP:
     log(L"Right clicked!");
     PostQuitMessage(0);
@@ -209,7 +214,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
   log(L"dpsgirl start");
 
   // Define a temporary directory (you might want to use GetTempPath)
