@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <chrono>
 #include <cstdlib> // For srand, rand
+#include "../cppparser/parser.cpp"
 
 // Global variables (similar to your Windows version)
 int animation_delay = 100;
@@ -122,8 +123,9 @@ void setClippingRegion(GtkWidget *window){
 std::wstring getDpsAsString() {
     if (sleeping)
         return L"ZZZzzz";
-    int dps = (rand() % 9999) + 1;
-    return std::to_wstring(dps);
+    // int dps = (rand() % 9999) + 1;
+    updateStats();
+    return std::to_wstring(getDps());
 }
 
 // Function to load an image using Cairo

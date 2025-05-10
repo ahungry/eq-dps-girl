@@ -18,6 +18,10 @@
 #include <iomanip>
 #include <chrono>
 
+#define _MSC_VER 1
+
+#include "../cppparser/parser.cpp"
+
 // #pragma comment(lib, "gdiplus.lib")
 using namespace Gdiplus;
 
@@ -189,9 +193,9 @@ std::wstring getDpsAsString() {
   if (sleeping)
     return L"ZZZzzz";
 
-  int dps = (rand() % 9999) + 1;
-
-  return std::to_wstring(dps);
+  // int dps = (rand() % 9999) + 1;
+  updateStats();
+  return std::to_wstring(getDps());
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
