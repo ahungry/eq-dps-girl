@@ -127,9 +127,10 @@ bool ExtractResourceToFile(LPCSTR resourceName, const wchar_t* filePath)
   file.close();
 
   //Clean up.  (Unlock, Free, no need to free hRes)
-  if (!UnlockResource(hResData)) {
-    logError(L"UnlockResource failed");
-  }
+  UnlockResource(hResData);
+  // if (!UnlockResource(hResData)) {
+  //   logError(L"UnlockResource failed");
+  // }
   return true;
 }
 
@@ -197,7 +198,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   }
   case WM_LBUTTONDOWN:
     log(L"Left clicked!");
-    PostQuitMessage(0);
+    // PostQuitMessage(0);
     break;
   case WM_RBUTTONUP:
     log(L"Right clicked!");
@@ -265,16 +266,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
   int y = screenHeight - windowHeight;
 
   //Use  WS_POPUP to remove title bar and borders.
-  HWND hwnd = CreateWindowExW(
-                              WS_EX_LAYERED | WS_EX_TRANSPARENT, // Extended style:  Layered window
-                              L"TransparentWindowClass",      // Class name
-                              L"Transparent Window",          // Window title (will not be visible)
-                              WS_POPUP, // Window style:  Popup window (no border/title bar)
-                              x, // CW_USEDEFAULT,
-                              y, // CW_USEDEFAULT,
-                              350,
-                              384,
-                              nullptr, nullptr, hInstance, nullptr);
+  HWND hwnd = CreateWindowExW
+    (
+     WS_EX_LAYERED |
+     WS_EX_TOPMOST |
+     WS_EX_ACCEPTFILES,
+     // Allows click-through, but makes clicking on it impossible
+     // WS_EX_TRANSPARENT, // Extended styles:  Layered window
+     L"TransparentWindowClass",      // Class name
+     L"Transparent Window",          // Window title (will not be visible)
+     WS_POPUP, // Window style:  Popup window (no border/title bar)
+     x, // CW_USEDEFAULT,
+     y, // CW_USEDEFAULT,
+     350, // width
+     384, // height
+     nullptr,
+     nullptr,
+     hInstance,
+     nullptr
+     );
 
   if (!hwnd)
     {

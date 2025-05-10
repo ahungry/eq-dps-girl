@@ -31,7 +31,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_IMAGE_1       RCDATA "girl1.png"
+IDR_IMAGE_1       RCDATA "../girl1.png"
+IDR_IMAGE_2       RCDATA "../girl2.png"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
