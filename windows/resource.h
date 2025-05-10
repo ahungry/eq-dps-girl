@@ -6,5 +6,7 @@
 // Choose unique IDs
 #define IDR_IMAGE_1       101
 #define IDR_IMAGE_2       102
+#define IDR_IMAGE_Z       103
+#define IDR_IMAGE_B       104
 
 #endif

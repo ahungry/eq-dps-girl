@@ -24,7 +24,7 @@ GdiplusStartupInput gdiplusStartupInput;
 wchar_t tempDir[MAX_PATH]; // = L".\\";
 
 int currentImage = 0;
-float scale = 0.5f;
+float scale = 1.0f;
 
 // Helper function to get a formatted error message for a given error code
 std::wstring GetFormattedErrorMessage(DWORD error) {
@@ -171,6 +171,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   PAINTSTRUCT ps;
   static Bitmap* bitmap1 = NULL;
   static Bitmap* bitmap2 = NULL;
+  static Bitmap* bitmapB = NULL;
+  static Bitmap* bitmapZ = NULL;
 
   switch (message) {
   case WM_CREATE: {
@@ -182,6 +184,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     }
     std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
     std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
+    std::wstring imageBpath = std::wstring(tempDir) + L"__girlb.png";
+    std::wstring imageZpath = std::wstring(tempDir) + L"__girlz.png";
     bitmap1 = Bitmap::FromFile(image1path.c_str());
     if (bitmap1->GetLastStatus() != Ok) {
       logError(L"Failed to load image1.png!");
@@ -195,6 +199,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
       MessageBox(hwnd, "Failed to load image2.png.", "Error", MB_OK);
       return -1;
     }
+
+    bitmapB = Bitmap::FromFile(imageBpath.c_str());
+    if (bitmapB->GetLastStatus() != Ok) {
+      logError(L"Failed to load imageB.png!");
+      MessageBox(hwnd, "Failed to load imageB.png.", "Error", MB_OK);
+      return -1;
+    }
+
+    bitmapZ = Bitmap::FromFile(imageZpath.c_str());
+    if (bitmapZ->GetLastStatus() != Ok) {
+      logError(L"Failed to load imageZ.png!");
+      MessageBox(hwnd, "Failed to load imageZ.png.", "Error", MB_OK);
+      return -1;
+    }
+
     //Set window as layered.
     SetWindowLongPtr(hwnd, GWL_EXSTYLE,
                      GetWindowLongPtr(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -268,9 +287,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
     return -1;
   }
 
-  // // Extract the DLLs.
   std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
   std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
+  std::wstring imageBpath = std::wstring(tempDir) + L"__girlb.png";
+  std::wstring imageZpath = std::wstring(tempDir) + L"__girlz.png";
 
   if (!ExtractResourceToFile(MAKEINTRESOURCE(IDR_IMAGE_1), image1path.c_str()))
     {
@@ -281,6 +301,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
   if (!ExtractResourceToFile(MAKEINTRESOURCE(IDR_IMAGE_2), image2path.c_str()))
     {
       logError(L"image2 extract failed");
+      return -1;
+    }
+
+  if (!ExtractResourceToFile(MAKEINTRESOURCE(IDR_IMAGE_B), imageBpath.c_str()))
+    {
+      logError(L"imageB extract failed");
+      return -1;
+    }
+
+  if (!ExtractResourceToFile(MAKEINTRESOURCE(IDR_IMAGE_Z), imageZpath.c_str()))
+    {
+      logError(L"imageZ extract failed");
       return -1;
     }
 
@@ -359,6 +391,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
 
   DeleteFileW(image1path.c_str());
   DeleteFileW(image2path.c_str());
+  DeleteFileW(imageBpath.c_str());
+  DeleteFileW(imageZpath.c_str());
 
   log(L"dpsgirl end");
 
