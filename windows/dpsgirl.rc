@@ -35,6 +35,7 @@ IDR_IMAGE_1       RCDATA "../girl1.png"
 IDR_IMAGE_2       RCDATA "../girl2.png"
 IDR_IMAGE_B       RCDATA "../girlb.png"
 IDR_IMAGE_Z       RCDATA "../girlz.png"
+IDR_IMAGE_U       RCDATA "../bubble200.png"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

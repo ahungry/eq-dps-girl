@@ -8,5 +8,6 @@
 #define IDR_IMAGE_2       102
 #define IDR_IMAGE_Z       103
 #define IDR_IMAGE_B       104
+#define IDR_IMAGE_U       105
 
 #endif

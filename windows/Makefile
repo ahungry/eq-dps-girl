@@ -55,5 +55,5 @@ clean:
 
 .PHONY: all release debug clean
 
-contours:
-	g++ ./contours.cpp -Wall -o contours.bin $(pkg-config --libs --cflags opencv4) # && ./contours.bin >> dpsgirl.cpp
+contours.bin:
+	g++ ./contours.cpp -Wall -o contours.bin $(shell pkg-config --libs --cflags opencv4) # && ./contours.bin >> dpsgirl.cpp

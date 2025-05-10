@@ -7,7 +7,8 @@ using namespace std;
 
 int main() {
     // 1. Load the PNG image
-    Mat image = imread("girl1.png", IMREAD_UNCHANGED); // Load with alpha channel
+    // Mat image = imread("girl1.png", IMREAD_UNCHANGED); // Load with alpha channel
+    Mat image = imread("../bubble200.png", IMREAD_UNCHANGED); // Load with alpha channel
 
     if (image.empty()) {
         cout << "Could not open or find the image" << endl;
