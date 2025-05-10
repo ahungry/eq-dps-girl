@@ -77,20 +77,48 @@ std::wstring GetTimestamp() {
   return woss.str();
 }
 
-int log(std::wstring msg)
+int spit(std::wstring fileName, std::wstring msg)
 {
-  std::wstring logFileName = L"dpsgirl.log";
-  FILE* logFile;
-  errno_t err = _wfopen_s(&logFile, logFileName.c_str(), L"a+"); // Open for appending
+  FILE* file;
+  errno_t err = _wfopen_s(&file, fileName.c_str(), L"a+"); // Open for appending
 
-  if (logFile == nullptr) return -1;
+  if (file == nullptr) return -1;
   if (err > 0) return -1;
 
-  fwprintf(logFile, L"%ls - %ls\n", GetTimestamp().c_str(), msg.c_str());
-  fflush(logFile); // Ensure the data is written immediately
-  fclose(logFile);
+  fwprintf(file, msg.c_str());
+  fflush(file);
+  fclose(file);
 
   return 0;
+}
+
+int spit(std::string fileName, std::string msg)
+{
+  FILE* file;
+  errno_t err = fopen_s(&file, fileName.c_str(), "a+"); // Open for appending
+
+  if (file == nullptr) return -1;
+  if (err > 0) return -1;
+
+  fprintf(file, msg.c_str());
+  fflush(file);
+  fclose(file);
+
+  return 0;
+}
+
+int log(std::wstring msg)
+{
+  return spit(L"dpsgirl.log", GetTimestamp() + L" - " + msg + L"\n");
+}
+
+int log(std::string msg)
+{
+  std::wstring wstr = GetTimestamp();
+  char buffer[100];
+  std::wcstombs(buffer, wstr.c_str(), sizeof(buffer));
+  std::string timestamp(buffer);
+  return spit("dpsgirl.log", timestamp + " - " + msg + "\n");
 }
 
 void logError(std::wstring msg)
@@ -98,6 +126,11 @@ void logError(std::wstring msg)
   DWORD lastError = GetLastError();
   std::wstring errorMessage = GetFormattedErrorMessage(lastError);
   log(msg + L": [" + errorMessage + L"]");
+}
+
+int addToConfig(std::wstring msg)
+{
+  return spit(L"dpsgirl.conf", msg + L"\n");
 }
 
 bool ExtractResourceToFile(LPWSTR resourceName, const wchar_t* filePath)
@@ -375,6 +408,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
         // std::wcout << L"Dropped file: " << filePathBuffer.data() << std::endl;
         // Process the file path here (e.g., open the file)
         log(L"Dropped file: " + std::wstring(filePathBuffer.data()));
+        addToConfig(std::wstring(filePathBuffer.data()));
       } else {
         logError(L"Error getting dropped file path.");
       }

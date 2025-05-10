@@ -9,12 +9,22 @@
 #include <ctime>
 #include <numeric>
 #include <algorithm>
+#include <filesystem>
+
+int log(std::wstring msg);
+int log(std::string msg);
 
 // Global variable to store the last read position
 std::streampos lastReadPos = 0;
+std::string filePath = "";
+struct Hit {
+    long long epoch;
+    int damage;
+};
+std::vector<Hit> stats;
+const long dpsInactivitySeconds = 3000000000;
 
-// FIXME: Get this from a file or config
-const std::string filePath = "../eqlog_Soandso_thj.txt";
+
 
 std::string getFormattedLocalDate() {
     auto now = std::chrono::system_clock::now();
@@ -64,11 +74,6 @@ long long parseDateToEpoch(const std::string& dateStr) {
     }
     return static_cast<long long>(timeSinceEpoch);
 }
-
-struct Hit {
-    long long epoch;
-    int damage;
-};
 
 // Function to get the size of a file
 long long getFileSize(const std::string& filePath) {
@@ -121,11 +126,12 @@ std::string slurpOnceAsString(const std::string& filePath) {
 std::vector<std::string> slurpOnceAsLines(const std::string& filePath) {
     long long fileSize = getFileSize(filePath);
     if (fileSize == -1) {
-        return {};
+      log("Failed to load a file: " + filePath);
+      return {};
     }
 
     if (lastReadPos >= fileSize) {
-        return {}; // Nothing new to read
+      return {}; // Nothing new to read
     }
 
     std::string content = readFileFromPosition(filePath, lastReadPos);
@@ -143,9 +149,61 @@ std::vector<std::string> slurpOnceAsLines(const std::string& filePath) {
     return lines;
 }
 
+std::vector<std::string> slurpAsLines(const std::string& filePath) {
+    std::ifstream inputFile(filePath);
+    std::vector<std::string> lines;
+    std::string line;
+
+    if (inputFile.is_open()) {
+        while (std::getline(inputFile, line)) {
+            lines.push_back(line);
+        }
+        inputFile.close();
+        return lines;
+    } else {
+      log("Unable to open file: " + filePath);
+    }
+    return {};
+}
+
+std::string getNewestLogFile()
+{
+  std::vector<std::string> lines = slurpAsLines("dpsgirl.conf");
+  std::string newestLog = "";
+  // std::time_t newestTime = 0;
+  long long newestTime = 0;
+
+  for (const auto& line : lines) {
+    if (!std::filesystem::exists(line)) {
+      log("Junk line in conf file - a non-existent file, skipping: " + line);
+      continue;
+    }
+    std::filesystem::path p = line;
+    auto lastWriteTime = std::filesystem::last_write_time(p);
+    auto systemClockTime = std::chrono::time_point_cast<std::chrono::system_clock::duration>(lastWriteTime);
+    auto epochTime = systemClockTime.time_since_epoch();
+    std::time_t t = std::chrono::duration_cast<std::chrono::seconds>(epochTime).count();
+
+    if (t > newestTime || newestTime == 0)
+      {
+        newestTime = t;
+        newestLog = line;
+      }
+  }
+
+  if (newestLog != filePath) {
+    log("Parsing the newest log file in your dpsgirl.conf:  " + newestLog);
+    filePath = newestLog;
+    lastReadPos = 0;
+    stats.clear();
+  }
+
+  return newestLog;
+}
+
 std::vector<Hit> getHits() {
     std::vector<Hit> hits;
-    std::vector<std::string> lines = slurpOnceAsLines(filePath);
+    std::vector<std::string> lines = slurpOnceAsLines(getNewestLogFile());
     std::regex damageRegex(".* points of .*damage.*");
     std::regex exclusionRegex("(\\] a|healed|YOU|absorbed)");
     std::regex extractionRegex("\\[(.*?)\\][^\\d]* (\\d+)"); // Match date in [], then a space and digits
@@ -172,12 +230,6 @@ std::vector<Hit> getHits() {
     }
     return hits;
 }
-
-// Global variable to store the damage stats
-std::vector<Hit> stats;
-
-// Constant for the inactivity timeout in seconds
-const long dpsInactivitySeconds = 3000000000;
 
 // Function to get the inactivity duration in seconds
 long long getInactivitySeconds() {
