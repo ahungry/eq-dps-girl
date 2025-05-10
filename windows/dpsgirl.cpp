@@ -25,37 +25,39 @@ ULONG_PTR gdiplusToken;
 GdiplusStartupInput gdiplusStartupInput;
 wchar_t tempDir[MAX_PATH]; // = L".\\";
 
+int animation_delay = 100;
 int currentImage = 0;
 int sleep = 0;
 float scale = 1.0f;
 
 // Helper function to get a formatted error message for a given error code
 std::wstring GetFormattedErrorMessage(DWORD error) {
-    LPWSTR buffer = nullptr;
-    DWORD size = FormatMessageW(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr,
-        error,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-        (LPWSTR)&buffer,
-        0,
-        nullptr
-    );
+  LPWSTR buffer = nullptr;
+  DWORD size = FormatMessageW
+    (
+     FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+     nullptr,
+     error,
+     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+     (LPWSTR)&buffer,
+     0,
+     nullptr
+     );
 
-    std::wstring message;
-    if (size > 0) {
-        message = buffer;
-        // Trim trailing newline characters
-        while (!message.empty() && (message.back() == L'\n' || message.back() == L'\r')) {
-            message.pop_back();
-        }
-        LocalFree(buffer); // Free the allocated buffer
-    } else {
-        std::wostringstream oss;
-        oss << L"Error code: " << error;
-        message = oss.str();
+  std::wstring message;
+  if (size > 0) {
+    message = buffer;
+    // Trim trailing newline characters
+    while (!message.empty() && (message.back() == L'\n' || message.back() == L'\r')) {
+      message.pop_back();
     }
-    return message;
+    LocalFree(buffer); // Free the allocated buffer
+  } else {
+    std::wostringstream oss;
+    oss << L"Error code: " << error;
+    message = oss.str();
+  }
+  return message;
 }
 
 // Function to get the current timestamp for logging
@@ -87,12 +89,12 @@ int log(std::wstring msg)
 
 void logError(std::wstring msg)
 {
-    DWORD lastError = GetLastError();
-    std::wstring errorMessage = GetFormattedErrorMessage(lastError);
-    log(msg + L": [" + errorMessage + L"]");
+  DWORD lastError = GetLastError();
+  std::wstring errorMessage = GetFormattedErrorMessage(lastError);
+  log(msg + L": [" + errorMessage + L"]");
 }
 
-bool ExtractResourceToFile(LPCSTR resourceName, const wchar_t* filePath)
+bool ExtractResourceToFile(LPWSTR resourceName, const wchar_t* filePath)
 {
   HRSRC hRes = FindResource(GetModuleHandle(NULL), resourceName, RT_RCDATA);
   if (hRes == NULL)
@@ -182,7 +184,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     // Initialize GDI+
     Status startupStatus = GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     if (startupStatus != Ok) {
-      MessageBox(hwnd, "Failed to initialize GDI+.", "Error", MB_OK);
+      MessageBox(hwnd, L"Failed to initialize GDI+.", L"Error", MB_OK);
       return -1;
     }
     std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
@@ -193,28 +195,28 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     bitmap1 = Bitmap::FromFile(image1path.c_str());
     if (bitmap1->GetLastStatus() != Ok) {
       logError(L"Failed to load image1.png!");
-      MessageBox(hwnd, "Failed to load image1.png.", "Error", MB_OK);
+      MessageBox(hwnd, L"Failed to load image1.png.", L"Error", MB_OK);
       return -1;
     }
 
     bitmap2 = Bitmap::FromFile(image2path.c_str());
     if (bitmap2->GetLastStatus() != Ok) {
       logError(L"Failed to load image2.png!");
-      MessageBox(hwnd, "Failed to load image2.png.", "Error", MB_OK);
+      MessageBox(hwnd, L"Failed to load image2.png.", L"Error", MB_OK);
       return -1;
     }
 
     bitmapB = Bitmap::FromFile(imageBpath.c_str());
     if (bitmapB->GetLastStatus() != Ok) {
       logError(L"Failed to load imageB.png!");
-      MessageBox(hwnd, "Failed to load imageB.png.", "Error", MB_OK);
+      MessageBox(hwnd, L"Failed to load imageB.png.", L"Error", MB_OK);
       return -1;
     }
 
     bitmapZ = Bitmap::FromFile(imageZpath.c_str());
     if (bitmapZ->GetLastStatus() != Ok) {
       logError(L"Failed to load imageZ.png!");
-      MessageBox(hwnd, "Failed to load imageZ.png.", "Error", MB_OK);
+      MessageBox(hwnd, L"Failed to load imageZ.png.", L"Error", MB_OK);
       return -1;
     }
 
@@ -225,7 +227,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     // Make the window fully transparent.
     // SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
     SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
-    SetTimer(hwnd, 1, 200, nullptr);
+    SetTimer(hwnd, 1, animation_delay, nullptr);
     break;
   }
   case WM_PAINT: {
@@ -244,21 +246,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
     //Draw the image onto the off-screen DC.
     if (currentImage == 0) {
-        graphicsMem.DrawImage(bitmap1, 0, 0,
-                              static_cast<LONG>(bitmap1->GetWidth() * scale),
-                              static_cast<LONG>(bitmap1->GetHeight() * scale));
+      graphicsMem.DrawImage(bitmap1, 0, 0,
+                            static_cast<LONG>(bitmap1->GetWidth() * scale),
+                            static_cast<LONG>(bitmap1->GetHeight() * scale));
     } else if (currentImage == 1) {
-        graphicsMem.DrawImage(bitmap2, 0, 0,
-                              static_cast<LONG>(bitmap2->GetWidth() * scale),
-                              static_cast<LONG>(bitmap2->GetHeight() * scale));
+      graphicsMem.DrawImage(bitmap2, 0, 0,
+                            static_cast<LONG>(bitmap2->GetWidth() * scale),
+                            static_cast<LONG>(bitmap2->GetHeight() * scale));
     } else if (currentImage == 2) {
-        graphicsMem.DrawImage(bitmapB, 0, 0,
-                              static_cast<LONG>(bitmapB->GetWidth() * scale),
-                              static_cast<LONG>(bitmapB->GetHeight() * scale));
+      graphicsMem.DrawImage(bitmapB, 0, 0,
+                            static_cast<LONG>(bitmapB->GetWidth() * scale),
+                            static_cast<LONG>(bitmapB->GetHeight() * scale));
     } else if (currentImage == 3) {
-        graphicsMem.DrawImage(bitmapZ, 0, 0,
-                              static_cast<LONG>(bitmapZ->GetWidth() * scale),
-                              static_cast<LONG>(bitmapZ->GetHeight() * scale));
+      graphicsMem.DrawImage(bitmapZ, 0, 0,
+                            static_cast<LONG>(bitmapZ->GetWidth() * scale),
+                            static_cast<LONG>(bitmapZ->GetHeight() * scale));
     }
 
     // Copy the entire off-screen buffer to the screen
@@ -289,6 +291,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
       InvalidateRect(hwnd, nullptr, FALSE);
       UpdateWindow(hwnd);
     }
+    break;
+  }
+  case WM_DROPFILES: {
+    HDROP hDrop = (HDROP)wParam;
+    UINT fileCount = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+    std::vector<wchar_t> filePathBuffer(MAX_PATH);
+
+    for (UINT i = 0; i < fileCount; ++i) {
+      if (DragQueryFile(hDrop, i, filePathBuffer.data(), MAX_PATH) > 0) {
+        // std::wcout << L"Dropped file: " << filePathBuffer.data() << std::endl;
+        // Process the file path here (e.g., open the file)
+        log(L"Dropped file: " + std::wstring(filePathBuffer.data()));
+      } else {
+        logError(L"Error getting dropped file path.");
+      }
+    }
+    DragFinish(hDrop); // Release the HDROP handle
     break;
   }
   case WM_LBUTTONDOWN:

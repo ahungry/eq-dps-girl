@@ -3,7 +3,7 @@
 # Compiler and linker settings
 # CC = g++
 CC = x86_64-w64-mingw32-gcc
-CFLAGS = -Wall -Wextra -O2 # Release configuration flags
+CFLAGS = -Wall -Wextra -O2 -DUNICODE -D_UNICODE # Release configuration flags
 CFLAGS_DEBUG = -Wall -Wextra -g -O0 # Debug configuration flags
 LDFLAGS = -static -mwindows -lgdiplus -lstdc++ # For Windows GUI applications
 
