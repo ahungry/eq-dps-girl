@@ -24,7 +24,9 @@ struct Hit {
 std::vector<Hit> stats;
 const long dpsInactivitySeconds = 3000000000;
 
-
+int hasNoLogs () {
+  return filePath == "" ? 1 : 0;
+}
 
 std::string getFormattedLocalDate() {
     auto now = std::chrono::system_clock::now();
@@ -175,7 +177,6 @@ std::string getNewestLogFile()
 
   for (const auto& line : lines) {
     if (!std::filesystem::exists(line)) {
-      log("Junk line in conf file - a non-existent file, skipping: " + line);
       continue;
     }
     std::filesystem::path p = line;

@@ -221,13 +221,16 @@ void setClippingRegion(HWND hWnd){
   SetWindowRgn(hWnd, hRgn, 1);
 }
 
-// TODO: Parse the file (and store it on D&D)
 std::wstring getDpsAsString() {
+  updateStats();
+
+  if (hasNoLogs())
+    return L"Logs?!";
+
   if (sleeping)
     return L"ZZZzzz";
 
   // int dps = (rand() % 9999) + 1;
-  updateStats();
   return std::to_wstring(getDps());
 }
 
