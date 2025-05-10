@@ -2,6 +2,8 @@
 #include <gdiplus.h>
 
 // For dll inclusion
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -24,6 +26,7 @@ GdiplusStartupInput gdiplusStartupInput;
 wchar_t tempDir[MAX_PATH]; // = L".\\";
 
 int currentImage = 0;
+int sleep = 0;
 float scale = 1.0f;
 
 // Helper function to get a formatted error message for a given error code
@@ -246,13 +249,36 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
                            static_cast<LONG>(bitmap2->GetWidth() * scale),
                            static_cast<LONG>(bitmap2->GetHeight() * scale));
       }
+    else if (currentImage == 2)
+      {
+        graphics.DrawImage(bitmapB, 0, 0,
+                           static_cast<LONG>(bitmap2->GetWidth() * scale),
+                           static_cast<LONG>(bitmap2->GetHeight() * scale));
+      }
+    else if (currentImage == 3)
+      {
+        graphics.DrawImage(bitmapZ, 0, 0,
+                           static_cast<LONG>(bitmap2->GetWidth() * scale),
+                           static_cast<LONG>(bitmap2->GetHeight() * scale));
+      }
 
     EndPaint(hwnd, &ps);
     break;
   }
   case WM_TIMER: {
     if (wParam == 1) {
+      if (currentImage > 1)
+        currentImage = 0;
+
       currentImage ^= 1;
+
+      int randomInRange = (rand() % 100) + 1;
+      if (randomInRange < 10)
+        currentImage = 2;
+
+      if (sleep == 0)
+        currentImage = 3;
+
       InvalidateRect(hwnd, nullptr, FALSE);
       UpdateWindow(hwnd);
     }
@@ -260,6 +286,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   }
   case WM_LBUTTONDOWN:
     log(L"Left clicked!");
+    sleep ^= 1;
     break;
   case WM_RBUTTONUP:
     log(L"Right clicked!");
@@ -280,6 +307,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
   log(L"dpsgirl start");
+  srand(static_cast<unsigned int>(time(0)));
 
   // Define a temporary directory (you might want to use GetTempPath)
   if (GetTempPathW(MAX_PATH, tempDir) == 0) {
