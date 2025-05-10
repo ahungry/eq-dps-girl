@@ -225,43 +225,49 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     // Make the window fully transparent.
     // SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
     SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
-    SetTimer(hwnd, 1, 100, nullptr);
+    SetTimer(hwnd, 1, 200, nullptr);
     break;
   }
   case WM_PAINT: {
     hdc = BeginPaint(hwnd, &ps);
-    Graphics graphics(hdc);
+    HDC hdcMem = CreateCompatibleDC(hdc); // Create an off-screen DC
+    RECT rect;
+    GetClientRect(hwnd, &rect);
+    HBITMAP hbmMem = CreateCompatibleBitmap(hdc, rect.right - rect.left, rect.bottom - rect.top); // Create an off-screen bitmap
+    HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem); // Select the bitmap into the off-screen DC
+    Graphics graphicsMem(hdcMem); // Create a Graphics object for the off-screen DC
 
-    // 1. Redraw the background
-    HBRUSH hbrBackground = CreateSolidBrush(RGB(0,0,0));
-    FillRect(hdc, &ps.rcPaint, hbrBackground);
+    // 1. Redraw the background (using the color key color)
+    HBRUSH hbrBackground = CreateSolidBrush(RGB(1, 1, 1)); // Assuming your color key is RGB(1,1,1)
+    FillRect(hdcMem, &rect, hbrBackground);
     DeleteObject(hbrBackground);
 
-    //Draw the image.
-    if (currentImage == 0)
-      {
-        graphics.DrawImage(bitmap1, 0, 0,
-                           static_cast<LONG>(bitmap1->GetWidth() * scale),
-                           static_cast<LONG>(bitmap1->GetHeight() * scale));
-      }
-    else if (currentImage == 1)
-      {
-        graphics.DrawImage(bitmap2, 0, 0,
-                           static_cast<LONG>(bitmap2->GetWidth() * scale),
-                           static_cast<LONG>(bitmap2->GetHeight() * scale));
-      }
-    else if (currentImage == 2)
-      {
-        graphics.DrawImage(bitmapB, 0, 0,
-                           static_cast<LONG>(bitmap2->GetWidth() * scale),
-                           static_cast<LONG>(bitmap2->GetHeight() * scale));
-      }
-    else if (currentImage == 3)
-      {
-        graphics.DrawImage(bitmapZ, 0, 0,
-                           static_cast<LONG>(bitmap2->GetWidth() * scale),
-                           static_cast<LONG>(bitmap2->GetHeight() * scale));
-      }
+    //Draw the image onto the off-screen DC.
+    if (currentImage == 0) {
+        graphicsMem.DrawImage(bitmap1, 0, 0,
+                              static_cast<LONG>(bitmap1->GetWidth() * scale),
+                              static_cast<LONG>(bitmap1->GetHeight() * scale));
+    } else if (currentImage == 1) {
+        graphicsMem.DrawImage(bitmap2, 0, 0,
+                              static_cast<LONG>(bitmap2->GetWidth() * scale),
+                              static_cast<LONG>(bitmap2->GetHeight() * scale));
+    } else if (currentImage == 2) {
+        graphicsMem.DrawImage(bitmapB, 0, 0,
+                              static_cast<LONG>(bitmapB->GetWidth() * scale),
+                              static_cast<LONG>(bitmapB->GetHeight() * scale));
+    } else if (currentImage == 3) {
+        graphicsMem.DrawImage(bitmapZ, 0, 0,
+                              static_cast<LONG>(bitmapZ->GetWidth() * scale),
+                              static_cast<LONG>(bitmapZ->GetHeight() * scale));
+    }
+
+    // Copy the entire off-screen buffer to the screen
+    BitBlt(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, hdcMem, 0, 0, SRCCOPY);
+
+    // Clean up
+    SelectObject(hdcMem, hbmOld);
+    DeleteObject(hbmMem);
+    DeleteDC(hdcMem);
 
     EndPaint(hwnd, &ps);
     break;
