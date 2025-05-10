@@ -23,6 +23,8 @@ ULONG_PTR gdiplusToken;
 GdiplusStartupInput gdiplusStartupInput;
 wchar_t tempDir[MAX_PATH]; // = L".\\";
 
+int currentImage = 0;
+
 // Helper function to get a formatted error message for a given error code
 std::wstring GetFormattedErrorMessage(DWORD error) {
     LPWSTR buffer = nullptr;
@@ -161,7 +163,8 @@ void setClippingRegion(HWND hWnd){
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
   HDC hdc;
   PAINTSTRUCT ps;
-  static Bitmap* bitmap = NULL;
+  static Bitmap* bitmap1 = NULL;
+  static Bitmap* bitmap2 = NULL;
 
   switch (message) {
   case WM_CREATE: {
@@ -171,12 +174,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
       MessageBox(hwnd, "Failed to initialize GDI+.", "Error", MB_OK);
       return -1;
     }
-    //std::wstring tempDir = std::wstring(tempDir);
     std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
-    // bitmap = Bitmap::FromFile((std::wstring(tempDir)) + L"__girl1.png");
-    bitmap = Bitmap::FromFile(image1path.c_str());
-    if (bitmap->GetLastStatus() != Ok) {
-      MessageBox(hwnd, "Failed to load image.png.", "Error", MB_OK);
+    std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
+    bitmap1 = Bitmap::FromFile(image1path.c_str());
+    if (bitmap1->GetLastStatus() != Ok) {
+      logError(L"Failed to load image1.png!");
+      MessageBox(hwnd, "Failed to load image1.png.", "Error", MB_OK);
+      return -1;
+    }
+
+    bitmap2 = Bitmap::FromFile(image2path.c_str());
+    if (bitmap2->GetLastStatus() != Ok) {
+      logError(L"Failed to load image2.png!");
+      MessageBox(hwnd, "Failed to load image2.png.", "Error", MB_OK);
       return -1;
     }
     //Set window as layered.
@@ -191,13 +201,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   case WM_PAINT: {
     hdc = BeginPaint(hwnd, &ps);
     Graphics graphics(hdc);
+
+    // 1. Redraw the background
+    HBRUSH hbrBackground = CreateSolidBrush(RGB(0,0,0));
+    FillRect(hdc, &ps.rcPaint, hbrBackground);
+    DeleteObject(hbrBackground);
+
     //Draw the image.
-    graphics.DrawImage(bitmap, 0, 0, bitmap->GetWidth(), bitmap->GetHeight());
+    if (currentImage == 0)
+      {
+        log(L"Drawing 0");
+        graphics.DrawImage(bitmap1, 0, 0, bitmap1->GetWidth(), bitmap1->GetHeight());
+      }
+    else if (currentImage == 1)
+      {
+        log(L"Drawing 1");
+        graphics.DrawImage(bitmap2, 0, 0, bitmap2->GetWidth(), bitmap2->GetHeight());
+      }
+
     EndPaint(hwnd, &ps);
     break;
   }
   case WM_LBUTTONDOWN:
     log(L"Left clicked!");
+    currentImage ^= 1;
+    InvalidateRect(hwnd, nullptr, FALSE); // Force a repaint
+    UpdateWindow(hwnd); // Send the WM_PAINT message
     // PostQuitMessage(0);
     break;
   case WM_RBUTTONUP:
@@ -205,7 +234,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     PostQuitMessage(0);
     break;
   case WM_DESTROY:
-    delete bitmap;
+    delete bitmap1;
+    delete bitmap2;
     GdiplusShutdown(gdiplusToken);
     PostQuitMessage(0);
     break;
@@ -226,10 +256,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
 
   // // Extract the DLLs.
   std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
+  std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
 
   if (!ExtractResourceToFile(MAKEINTRESOURCE(IDR_IMAGE_1), image1path.c_str()))
     {
       logError(L"image1 extract failed");
+      return -1;
+    }
+
+  if (!ExtractResourceToFile(MAKEINTRESOURCE(IDR_IMAGE_2), image2path.c_str()))
+    {
+      logError(L"image2 extract failed");
       return -1;
     }
 
@@ -303,6 +340,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
   }
 
   DeleteFileW(image1path.c_str());
+  DeleteFileW(image2path.c_str());
 
   log(L"dpsgirl end");
 
