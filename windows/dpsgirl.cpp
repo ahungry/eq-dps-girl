@@ -24,6 +24,7 @@ GdiplusStartupInput gdiplusStartupInput;
 wchar_t tempDir[MAX_PATH]; // = L".\\";
 
 int currentImage = 0;
+float scale = 0.5;
 
 // Helper function to get a formatted error message for a given error code
 std::wstring GetFormattedErrorMessage(DWORD error) {
@@ -196,6 +197,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     //Make the window fully transparent.
     SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
     // SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
+    SetTimer(hwnd, 1, 100, nullptr);
     break;
   }
   case WM_PAINT: {
@@ -222,18 +224,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     EndPaint(hwnd, &ps);
     break;
   }
+  case WM_TIMER: {
+    if (wParam == 1) {
+      currentImage ^= 1;
+      InvalidateRect(hwnd, nullptr, FALSE);
+      UpdateWindow(hwnd);
+    }
+    break;
+  }
   case WM_LBUTTONDOWN:
     log(L"Left clicked!");
-    currentImage ^= 1;
-    InvalidateRect(hwnd, nullptr, FALSE); // Force a repaint
-    UpdateWindow(hwnd); // Send the WM_PAINT message
-    // PostQuitMessage(0);
     break;
   case WM_RBUTTONUP:
     log(L"Right clicked!");
     PostQuitMessage(0);
     break;
   case WM_DESTROY:
+    KillTimer(hwnd, 1);
     delete bitmap1;
     delete bitmap2;
     GdiplusShutdown(gdiplusToken);
