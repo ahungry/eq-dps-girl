@@ -27,7 +27,7 @@ wchar_t tempDir[MAX_PATH]; // = L".\\";
 
 int animation_delay = 100;
 int currentImage = 0;
-int sleep = 0;
+int sleeping = 0;
 float scale = 1.0f;
 int bubbleX = -30;
 int bubbleY = -60;
@@ -184,6 +184,15 @@ void setClippingRegion(HWND hWnd){
   SetWindowRgn(hWnd, hRgn, 1);
 }
 
+// TODO: Parse the file (and store it on D&D)
+std::wstring getDpsAsString() {
+  if (sleeping)
+    return L"ZZZzzz";
+
+  int dps = (rand() % 9999) + 1;
+
+  return std::to_wstring(dps);
+}
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
   HDC hdc;
@@ -292,6 +301,36 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
                           static_cast<LONG>(bitmapU->GetWidth() * scale),
                           static_cast<LONG>(bitmapU->GetHeight() * scale));
 
+    // --- Drawing the text ---
+    FontFamily fontFamily(L"Arial"); // You can choose a different font
+    Font font(&fontFamily, 30 * scale, FontStyleRegular, UnitPixel); // Adjust size as needed
+    SolidBrush textBrush(Color(255, 0, 0, 0)); // Black color (ARGB)
+    PointF textPosition(40 * scale, 70 * scale); // Adjust position within the bubble
+
+    std::wstring textToDraw = getDpsAsString();
+    graphicsMem.DrawString(
+        textToDraw.c_str(),
+        -1, // Draw the entire string
+        &font,
+        textPosition,
+        &textBrush
+    );
+
+    FontFamily fontFamily2(L"Arial"); // You can choose a different font
+    Font font2(&fontFamily2, 14 * scale, FontStyleRegular, UnitPixel); // Adjust size as needed
+    SolidBrush textBrush2(Color(255, 0, 0, 0)); // Black color (ARGB)
+    PointF textPosition2(130 * scale, 60 * scale); // Adjust position within the bubble
+
+    std::wstring textToDraw2 = sleeping ? L"zzz" : L"dps";
+    graphicsMem.DrawString(
+        textToDraw2.c_str(),
+        -1, // Draw the entire string
+        &font2,
+        textPosition2,
+        &textBrush2
+    );
+    // --- End of text drawing ---
+
     // Copy the entire off-screen buffer to the screen
     BitBlt(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, hdcMem, 0, 0, SRCCOPY);
 
@@ -314,7 +353,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
       if (randomInRange < 10)
         currentImage = 2;
 
-      if (sleep == 0)
+      if (sleeping == 1)
         currentImage = 3;
 
       InvalidateRect(hwnd, nullptr, FALSE);
@@ -341,7 +380,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   }
   case WM_LBUTTONDOWN:
     log(L"Left clicked!");
-    sleep ^= 1;
+    sleeping ^= 1;
     break;
   case WM_RBUTTONUP:
     log(L"Right clicked!");
