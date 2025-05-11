@@ -22,7 +22,7 @@ struct Hit {
     int damage;
 };
 std::vector<Hit> stats;
-const long dpsInactivitySeconds = 3000000000;
+const long dpsInactivitySeconds = 6;
 
 int hasNoLogs () {
   return filePath == "" ? 1 : 0;
@@ -249,10 +249,9 @@ void updateStats() {
     std::vector<Hit> newHits = getHits();
     stats.insert(stats.end(), newHits.begin(), newHits.end());
 
-    // FIXME: Enable this
-    // if (getInactivitySeconds() > dpsInactivitySeconds) {
-    //     stats.clear();
-    // }
+    if (getInactivitySeconds() > dpsInactivitySeconds) {
+        stats.clear();
+    }
 }
 
 // Function to get the duration of the recorded hits in seconds
