@@ -247,7 +247,6 @@ void updateStats() {
     stats.insert(stats.end(), newHits.begin(), newHits.end());
 
     if (getInactivitySeconds() > dpsInactivitySeconds) {
-      log("Clearing stats, inactivity time was: " + std::to_string(getInactivitySeconds()));
       stats.clear();
     }
 }
