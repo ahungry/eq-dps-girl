@@ -59,7 +59,7 @@ int spit(std::string fileName, std::string msg)
 }
 
 int log(std::wstring msg) {
-  return spit("dpsgirl.log", GetTimestamp() + L"-" + msg + L"\n");
+  return spit("dpsgirl.log", GetTimestamp() + L" - " + msg + L"\n");
 }
 
 int log(std::string msg) {
