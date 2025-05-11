@@ -85,7 +85,7 @@ long long getFileSize(const std::string& filePath) {
         file.close();
         return size;
     } else {
-        std::cerr << "Error opening file: " << filePath << std::endl;
+      //std::cerr << "Error opening file: " << filePath << std::endl;
         return -1; // Indicate an error
     }
 }
@@ -101,7 +101,7 @@ std::string readFileFromPosition(const std::string& filePath, std::streampos sta
         content = buffer.str();
         file.close();
     } else {
-        std::cerr << "Error opening file: " << filePath << std::endl;
+      //std::cerr << "Error opening file: " << filePath << std::endl;
     }
     return content;
 }
@@ -128,7 +128,6 @@ std::string slurpOnceAsString(const std::string& filePath) {
 std::vector<std::string> slurpOnceAsLines(const std::string& filePath) {
     long long fileSize = getFileSize(filePath);
     if (fileSize == -1) {
-      log("Failed to load a file: " + filePath);
       return {};
     }
 
@@ -162,8 +161,6 @@ std::vector<std::string> slurpAsLines(const std::string& filePath) {
         }
         inputFile.close();
         return lines;
-    } else {
-      log("Unable to open file: " + filePath);
     }
     return {};
 }
@@ -193,7 +190,11 @@ std::string getNewestLogFile()
   }
 
   if (newestLog != filePath) {
-    log("Parsing the newest log file in your dpsgirl.conf:  " + newestLog);
+    if (newestLog != "")
+      log("Parsing the newest log file in your dpsgirl.conf:  " + newestLog);
+    else
+      log("Your config file may have disappeared, no logs available!");
+
     filePath = newestLog;
     lastReadPos = 0;
     stats.clear();

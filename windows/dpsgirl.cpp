@@ -420,11 +420,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     break;
   }
   case WM_LBUTTONDOWN:
-    log(L"Left clicked!");
     sleeping ^= 1;
     break;
   case WM_RBUTTONUP:
-    log(L"Right clicked!");
     PostQuitMessage(0);
     break;
   case WM_DESTROY:

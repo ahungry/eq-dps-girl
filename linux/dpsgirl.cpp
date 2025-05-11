@@ -36,6 +36,19 @@ int log(std::wstring msg) {
   return 1;
 }
 
+int log(std::string msg) {
+  std::ofstream logFile("dpsgirl.log", std::ios::app);
+  if (logFile.is_open()) {
+    logFile << msg << std::endl;
+    std::cerr << msg << std::endl;
+    logFile.close();
+  } else {
+    std::cerr << L"Unable to open file for writing." << std::endl;
+  }
+
+  return 1;
+}
+
 void logError(std::wstring msg) {
   log(msg);
   return;
