@@ -17,8 +17,6 @@
 #include <cstdlib>
 #include "../cppparser/parser.cpp"
 
-GtkWidget *window;
-
 int animation_delay = 100;
 int currentImage = 0;
 int sleeping = 0;
@@ -144,13 +142,29 @@ getDpsAsString()
 }
 
 static void
-screen_changed(GtkWidget *, GdkScreen *, gpointer);
+screen_changed(GtkWidget *widget, GdkScreen *, gpointer)
+{
+  GdkScreen *screen = gtk_widget_get_screen(widget);
+
+  if (!gdk_screen_is_composited(screen))
+    {
+      logError("Please enable a compositor (xcompmgr or other).\n");
+      gtk_widget_destroy(widget);
+      exit(1);
+    }
+
+  gtk_widget_set_visual(widget, gdk_screen_get_rgba_visual(screen));
+}
 
 static void
-composited_changed(GdkScreen *, gpointer);
+composited_changed(GdkScreen *, gpointer)
+{
+  logError("Compositor went away, exiting.\n");
+  exit(1);
+}
 
 void
-realize_input_shape()
+realize_input_shape(GtkWidget *window)
 {
   cairo_rectangle_int_t rect = { 0, 0, 0, 0 };
   cairo_region_t *shape = cairo_region_create_rectangle(&rect);
@@ -200,11 +214,11 @@ on_draw(GtkWidget *, cairo_t *cr, gpointer)
   else if (currentImage == 3 && bitmapZ) current_bitmap = bitmapZ;
 
   // Get screen dimensions (using GdkScreen)
-  GdkScreen *screen2 = gdk_screen_get_default();
+  GdkScreen *screen = gdk_screen_get_default();
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  int screen_width = gdk_screen_get_width(screen2);
-  int screen_height = gdk_screen_get_height(screen2);
+  int screen_width = gdk_screen_get_width(screen);
+  int screen_height = gdk_screen_get_height(screen);
 #pragma GCC diagnostic pop
 
   // NOTE: Update these values based on your image dimensions and scale
@@ -293,18 +307,19 @@ main(int argc, char **argv)
 {
   gtk_init(&argc, &argv);
 
-  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_gravity(GTK_WINDOW(window), GDK_GRAVITY_NORTH_WEST);
   gtk_window_move(GTK_WINDOW(window), 0, 0);
   gtk_window_set_title(GTK_WINDOW(window), "hudkit overlay window");
 
-//   GdkScreen *screen2 = gdk_screen_get_default();
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-//   int screen_width = gdk_screen_get_width(screen2);
-//   int screen_height = gdk_screen_get_height(screen2);
-// #pragma GCC diagnostic pop
+  GdkScreen *screen = gdk_screen_get_default();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  int screen_width = gdk_screen_get_width(screen);
+  int screen_height = gdk_screen_get_height(screen);
+#pragma GCC diagnostic pop
 
+  // TODO: Support these values and sizings/positioning based on non-sticky
   // NOTE: Update these values based on your image dimensions and scale
   // int scaled_image_width = static_cast<int>(350 * scale) - bubbleX;
   // int scaled_image_height = static_cast<int>(384 * scale) - bubbleY;
@@ -339,29 +354,24 @@ main(int argc, char **argv)
   gtk_window_set_decorated        (GTK_WINDOW(window), false);
   gtk_window_set_resizable        (GTK_WINDOW(window), false);
 
-  realize_input_shape();
+  realize_input_shape(window);
   gdk_window_show(GDK_WINDOW(gdk_window));
 
   GtkWidget *drawing_area = gtk_drawing_area_new();
   // gtk_widget_set_size_request(drawing_area, scaled_image_width, scaled_image_height);
-  gtk_widget_set_size_request(drawing_area, 1280, 720);
+  gtk_widget_set_size_request(drawing_area, screen_width, screen_height);
   gtk_container_add(GTK_CONTAINER(window), drawing_area);
 
-  // Set up a callback to react to screen changes
   g_signal_connect(window, "screen-changed",
                    G_CALLBACK(screen_changed), drawing_area);
-  // Set up a callback to react to screen compositing changes
-  GdkScreen *screen = gtk_widget_get_screen(GTK_WIDGET(window));
   g_signal_connect(screen, "composited-changed",
                    G_CALLBACK(composited_changed), drawing_area);
-
 
   gtk_widget_show_all(window);
 
   g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(on_draw), NULL);
   g_signal_connect(G_OBJECT(drawing_area), "button-press-event", G_CALLBACK(on_button_press), NULL);
 
-  // Enable button press events
   gtk_widget_set_events(drawing_area, gtk_widget_get_events(drawing_area) | GDK_BUTTON_PRESS_MASK);
 
   // setup_drag_and_drop(drawing_area);
@@ -371,25 +381,4 @@ main(int argc, char **argv)
   gtk_main();
 
   return 0;
-}
-
-static void
-screen_changed(GtkWidget *widget, GdkScreen *, gpointer)
-{
-  GdkScreen *screen = gtk_widget_get_screen(widget);
-
-  if (!gdk_screen_is_composited(screen)) {
-    logError("Please enable a compositor (xcompmgr or other).\n");
-    gtk_widget_destroy(widget);
-    exit(1);
-  }
-
-  gtk_widget_set_visual(widget, gdk_screen_get_rgba_visual(screen));
-}
-
-static void
-composited_changed(GdkScreen *, gpointer)
-{
-  logError("Compositor went away, exiting.\n");
-  exit(1);
 }
