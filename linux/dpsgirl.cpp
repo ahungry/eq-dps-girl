@@ -23,6 +23,10 @@ int sleeping = 0;
 float scale = 1.0f;
 int bubbleX = -30;
 int bubbleY = -60;
+int scaled_image_width;
+int scaled_image_height;
+int x;
+int y;
 
 std::wstring
 GetTimestamp()
@@ -128,14 +132,14 @@ getDpsAsString()
 
   int dps = getDps();
 
-  // if (dps > 0)
-  //   sleeping = 0;
+  if (dps > 0)
+    sleeping = 0;
 
-  // if (sleeping or dps == 0)
-  //   {
-  //     sleeping = 1;
-  //     return L"ZZZzzz";
-  //   }
+  if (sleeping or dps == 0)
+    {
+      sleeping = 1;
+      return L"ZZZzzz";
+    }
 
   // int dps = (rand() % 9999) + 1;
   return std::to_wstring(dps);
@@ -166,7 +170,7 @@ composited_changed(GdkScreen *, gpointer)
 void
 realize_input_shape(GtkWidget *window)
 {
-  cairo_rectangle_int_t rect = { 0, 0, 0, 0 };
+  cairo_rectangle_int_t rect = { x, y, scaled_image_width, scaled_image_height };
   cairo_region_t *shape = cairo_region_create_rectangle(&rect);
   GdkWindow *gdk_window = gtk_widget_get_window(GTK_WIDGET(window));
   if (gdk_window) // This might be NULL if this gets called during initialisation
@@ -319,14 +323,13 @@ main(int argc, char **argv)
   int screen_height = gdk_screen_get_height(screen);
 #pragma GCC diagnostic pop
 
-  // TODO: Support these values and sizings/positioning based on non-sticky
   // NOTE: Update these values based on your image dimensions and scale
-  // int scaled_image_width = static_cast<int>(350 * scale) - bubbleX;
-  // int scaled_image_height = static_cast<int>(384 * scale) - bubbleY;
+  scaled_image_width = static_cast<int>(350 * scale) - bubbleX;
+  scaled_image_height = static_cast<int>(384 * scale) - bubbleY;
 
   // Calculate position for the bottom-right corner
-  // int x = screen_width - scaled_image_width;
-  // int y = screen_height - scaled_image_height;
+  x = screen_width - scaled_image_width;
+  y = screen_height - scaled_image_height;
 
   g_signal_connect(G_OBJECT(window), "delete-event", gtk_main_quit, NULL);
   gtk_widget_set_app_paintable(window, TRUE);
@@ -358,6 +361,7 @@ main(int argc, char **argv)
   gdk_window_show(GDK_WINDOW(gdk_window));
 
   GtkWidget *drawing_area = gtk_drawing_area_new();
+  gtk_widget_set_events(drawing_area, gtk_widget_get_events(drawing_area) | GDK_BUTTON_PRESS_MASK);
   // gtk_widget_set_size_request(drawing_area, scaled_image_width, scaled_image_height);
   gtk_widget_set_size_request(drawing_area, screen_width, screen_height);
   gtk_container_add(GTK_CONTAINER(window), drawing_area);
@@ -367,12 +371,12 @@ main(int argc, char **argv)
   g_signal_connect(screen, "composited-changed",
                    G_CALLBACK(composited_changed), drawing_area);
 
+
   gtk_widget_show_all(window);
 
   g_signal_connect(G_OBJECT(drawing_area), "draw", G_CALLBACK(on_draw), NULL);
   g_signal_connect(G_OBJECT(drawing_area), "button-press-event", G_CALLBACK(on_button_press), NULL);
 
-  gtk_widget_set_events(drawing_area, gtk_widget_get_events(drawing_area) | GDK_BUTTON_PRESS_MASK);
 
   // setup_drag_and_drop(drawing_area);
 
