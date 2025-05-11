@@ -2,9 +2,9 @@
 
 # Compiler and linker settings
 CC = g++
-CFLAGS = -Wall -Wextra -O2 -DUNICODE -D_UNICODE $(shell pkg-config --cflags cairo gtk+-3.0)
-CFLAGS_DEBUG = -Wall -Wextra -g -O0 $(shell pkg-config --cflags cairo gtk+-3.0)
-LDFLAGS = $(shell pkg-config --libs cairo gtk+-3.0)
+CFLAGS = -Wall -Wextra -O2 -DUNICODE -D_UNICODE $(shell pkg-config --cflags cairo gtk+-3.0 webkit2gtk-4.0)
+CFLAGS_DEBUG = -Wall -Wextra -g -O0 $(shell pkg-config --cflags cairo gtk+-3.0 webkit2gtk-4.0)
+LDFLAGS = $(shell pkg-config --libs cairo gtk+-3.0 webkit2gtk-4.0)
 
 # Source files
 SOURCES = dpsgirl.cpp

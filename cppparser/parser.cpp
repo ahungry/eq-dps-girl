@@ -17,6 +17,7 @@ int log(std::string msg);
 // Global variable to store the last read position
 std::streampos lastReadPos = 0;
 std::string filePath = "";
+int lastEpoch = 0;
 struct Hit {
     long long epoch;
     int damage;
@@ -48,13 +49,13 @@ long long epochLocal() {
     std::tm t{};
     ss >> std::get_time(&t, "%a %b %d %H:%M:%S %Y");
     if (ss.fail()) {
-        std::cerr << "Error parsing formatted local date: " << localDateStr << std::endl;
+        log("Error parsing formatted local date: " + localDateStr);
         return -1;
     }
     std::time_t timeSinceEpoch = mktime(&t);
     if (timeSinceEpoch == -1) {
-        std::cerr << "Error converting tm to time_t for formatted local date: " << localDateStr << std::endl;
-        return -1;
+      log("Error converting tm to time_t for formatted local date: " + localDateStr);
+      return -1;
     }
     return static_cast<long long>(timeSinceEpoch);
 }
@@ -220,7 +221,8 @@ std::vector<Hit> getHits() {
                 try {
                     int damage = std::stoi(damageStr);
                     if (epoch != -1) {
-                        hits.push_back({epoch, damage});
+                      lastEpoch = epoch;
+                      hits.push_back({epoch, damage});
                     }
                 } catch (const std::invalid_argument& e) {
                     std::cerr << "Invalid damage value: " << damageStr << " in line: " << line << std::endl;
@@ -235,13 +237,8 @@ std::vector<Hit> getHits() {
 
 // Function to get the inactivity duration in seconds
 long long getInactivitySeconds() {
-    if (!stats.empty()) {
-        auto now = std::chrono::system_clock::now();
-        auto nowEpoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count();
-        return nowEpoch - stats.back().epoch;
-    } else {
-        return -1;
-    }
+  auto nowEpoch = epochLocal();
+  return nowEpoch - lastEpoch;
 }
 
 // Function to update the stats with new hits and clear if inactive
@@ -250,7 +247,8 @@ void updateStats() {
     stats.insert(stats.end(), newHits.begin(), newHits.end());
 
     if (getInactivitySeconds() > dpsInactivitySeconds) {
-        stats.clear();
+      log("Clearing stats, inactivity time was: " + std::to_string(getInactivitySeconds()));
+      stats.clear();
     }
 }
 

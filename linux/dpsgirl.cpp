@@ -100,11 +100,19 @@ std::wstring getDpsAsString() {
   if (hasNoLogs())
     return L"Logs?!";
 
-  if (sleeping)
-    return L"ZZZzzz";
+  int dps = getDps();
+
+  if (dps > 0)
+    sleeping = 0;
+
+  if (sleeping or dps == 0)
+    {
+      sleeping = 1;
+      return L"ZZZzzz";
+    }
 
   // int dps = (rand() % 9999) + 1;
-  return std::to_wstring(getDps());
+  return std::to_wstring(dps);
 }
 
 // Function to load an image using Cairo
