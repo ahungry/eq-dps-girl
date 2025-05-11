@@ -74,10 +74,15 @@ void setClippingRegion(GtkWidget *window){
 
 // Function to get DPS as a wide string (same as before)
 std::wstring getDpsAsString() {
+  updateStats();
+
+  if (hasNoLogs())
+    return L"Logs?!";
+
   if (sleeping)
     return L"ZZZzzz";
+
   // int dps = (rand() % 9999) + 1;
-  updateStats();
   return std::to_wstring(getDps());
 }
 
@@ -99,7 +104,8 @@ cairo_surface_t* load_image(const std::wstring& filename) {
 }
 
 // GTK draw callback function
-static gboolean on_draw(GtkWidget *widget, cairo_t *cr, gpointer user_data) {
+// static gboolean on_draw(GtkWidget *widget, cairo_t *cr, gpointer user_data) {
+static gboolean on_draw(GtkWidget *, cairo_t *cr, gpointer) {
   static cairo_surface_t *bitmap1 = nullptr;
   static cairo_surface_t *bitmap2 = nullptr;
   static cairo_surface_t *bitmapB = nullptr;
@@ -186,7 +192,8 @@ static gboolean on_timer(gpointer user_data) {
 }
 
 // GTK button press event handler
-static gboolean on_button_press(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
+// static gboolean on_button_press(GtkWidget *widget, GdkEventButton *event, gpointer user_data) {
+static gboolean on_button_press(GtkWidget *widget, GdkEventButton *event, gpointer) {
   if (event->button == 1) {
     log(L"Left clicked!");
     sleeping ^= 1;
@@ -244,8 +251,11 @@ int main(int argc, char *argv[]) {
 
   // Get screen dimensions (using GdkScreen)
   GdkScreen *screen = gdk_screen_get_default();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   int screen_width = gdk_screen_get_width(screen);
   int screen_height = gdk_screen_get_height(screen);
+#pragma GCC diagnostic pop
 
   // NOTE: Update these values based on your image dimensions and scale
   int scaled_image_width = static_cast<int>(350 * scale) - bubbleX;
@@ -273,8 +283,14 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_visual(window, visual);
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
   const GdkRGBA color = { .alpha = 0.0 };
   gtk_widget_override_background_color(window, (GtkStateFlags)0, &color);
+#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
   GtkWidget *drawing_area = gtk_drawing_area_new();
   gtk_widget_set_size_request(drawing_area, scaled_image_width, scaled_image_height);
