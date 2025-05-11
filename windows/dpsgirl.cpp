@@ -37,7 +37,9 @@ int bubbleX = -30;
 int bubbleY = -60;
 
 // Helper function to get a formatted error message for a given error code
-std::wstring GetFormattedErrorMessage(DWORD error) {
+std::wstring
+GetFormattedErrorMessage(DWORD error)
+{
   LPWSTR buffer = nullptr;
   DWORD size = FormatMessageW
     (
@@ -51,23 +53,28 @@ std::wstring GetFormattedErrorMessage(DWORD error) {
      );
 
   std::wstring message;
-  if (size > 0) {
-    message = buffer;
-    // Trim trailing newline characters
-    while (!message.empty() && (message.back() == L'\n' || message.back() == L'\r')) {
-      message.pop_back();
+  if (size > 0)
+    {
+      message = buffer;
+      // Trim trailing newline characters
+      while (!message.empty() && (message.back() == L'\n' || message.back() == L'\r')) {
+        message.pop_back();
+      }
+      LocalFree(buffer); // Free the allocated buffer
     }
-    LocalFree(buffer); // Free the allocated buffer
-  } else {
-    std::wostringstream oss;
-    oss << L"Error code: " << error;
-    message = oss.str();
-  }
+  else
+    {
+      std::wostringstream oss;
+      oss << L"Error code: " << error;
+      message = oss.str();
+    }
   return message;
 }
 
 // Function to get the current timestamp for logging
-std::wstring GetTimestamp() {
+std::wstring
+GetTimestamp()
+{
   auto now = std::chrono::system_clock::now();
   auto now_c = std::chrono::system_clock::to_time_t(now);
   std::tm now_tm;
@@ -77,7 +84,8 @@ std::wstring GetTimestamp() {
   return woss.str();
 }
 
-int spit(std::wstring fileName, std::wstring msg)
+int
+spit(std::wstring fileName, std::wstring msg)
 {
   FILE* file;
   errno_t err = _wfopen_s(&file, fileName.c_str(), L"a+"); // Open for appending
@@ -92,7 +100,8 @@ int spit(std::wstring fileName, std::wstring msg)
   return 0;
 }
 
-int spit(std::string fileName, std::string msg)
+int
+spit(std::string fileName, std::string msg)
 {
   FILE* file;
   errno_t err = fopen_s(&file, fileName.c_str(), "a+"); // Open for appending
@@ -107,12 +116,14 @@ int spit(std::string fileName, std::string msg)
   return 0;
 }
 
-int log(std::wstring msg)
+int
+log(std::wstring msg)
 {
   return spit(L"dpsgirl.log", GetTimestamp() + L" - " + msg + L"\n");
 }
 
-int log(std::string msg)
+int
+log(std::string msg)
 {
   std::wstring wstr = GetTimestamp();
   char buffer[100];
@@ -121,19 +132,22 @@ int log(std::string msg)
   return spit("dpsgirl.log", timestamp + " - " + msg + "\n");
 }
 
-void logError(std::wstring msg)
+void
+logError(std::wstring msg)
 {
   DWORD lastError = GetLastError();
   std::wstring errorMessage = GetFormattedErrorMessage(lastError);
   log(msg + L": [" + errorMessage + L"]");
 }
 
-int addToConfig(std::wstring msg)
+int
+addToConfig(std::wstring msg)
 {
   return spit(L"dpsgirl.conf", msg + L"\n");
 }
 
-bool ExtractResourceToFile(LPWSTR resourceName, const wchar_t* filePath)
+bool
+ExtractResourceToFile(LPWSTR resourceName, const wchar_t* filePath)
 {
   HRSRC hRes = FindResource(GetModuleHandle(NULL), resourceName, RT_RCDATA);
   if (hRes == NULL)
@@ -144,32 +158,36 @@ bool ExtractResourceToFile(LPWSTR resourceName, const wchar_t* filePath)
 
   //Load the resource.
   HGLOBAL hResData = LoadResource(GetModuleHandle(NULL), hRes);
-  if (hResData == NULL) {
-    logError(L"LoadResource failed");
-    return false;
-  }
+  if (hResData == NULL)
+    {
+      logError(L"LoadResource failed");
+      return false;
+    }
 
   //Get a pointer to the resource data.
   const void* pData = LockResource(hResData);
-  if (pData == NULL) {
-    logError(L"LockResource failed");
-    return false;
-  }
+  if (pData == NULL)
+    {
+      logError(L"LockResource failed");
+      return false;
+    }
 
   //Get the size of the resource.
   DWORD dataSize = SizeofResource(GetModuleHandle(NULL), hRes);
-  if (dataSize == 0) {
-    logError(L"SizeofResource failed");
-    return false;
-  }
+  if (dataSize == 0)
+    {
+      logError(L"SizeofResource failed");
+      return false;
+    }
 
   //Write the resource data to a file.
   std::ofstream file(filePath, std::ios::binary);
-  if (!file.is_open()) {
-    // logError(L"Failed to open for writing: " + filePath);
-    logError(L"Failed to open for writing: ");
-    return false;
-  }
+  if (!file.is_open())
+    {
+      // logError(L"Failed to open for writing: " + filePath);
+      logError(L"Failed to open for writing: ");
+      return false;
+    }
   file.write(static_cast<const char*>(pData), dataSize);
   file.close();
 
@@ -181,13 +199,15 @@ bool ExtractResourceToFile(LPWSTR resourceName, const wchar_t* filePath)
   return true;
 }
 
-void setClippingRegion(HWND hWnd){
+void
+setClippingRegion(HWND hWnd)
+{
   RECT winrect, rect;
   POINT client_origin;
 
   // Get window and client rects
-  GetWindowRect( hWnd, &winrect );
-  GetClientRect( hWnd, &rect );
+  GetWindowRect(hWnd, &winrect);
+  GetClientRect(hWnd, &rect);
 
   // Get the client origin in window coordinates
   client_origin.x = 0; client_origin.y = 0;
@@ -200,20 +220,22 @@ void setClippingRegion(HWND hWnd){
   int numPoints = 683;
 
   // Iterate through the array and scale each point
-  for (int i = 0; i < numPoints; ++i) {
-    points[i].x = static_cast<LONG>(points[i].x * scale) - bubbleX; // Scale x and convert back to LONG
-    points[i].y = static_cast<LONG>(points[i].y * scale) - bubbleY; // Scale y and convert back to LONG
-  }
+  for (int i = 0; i < numPoints; ++i)
+    {
+      points[i].x = static_cast<LONG>(points[i].x * scale) - bubbleX; // Scale x and convert back to LONG
+      points[i].y = static_cast<LONG>(points[i].y * scale) - bubbleY; // Scale y and convert back to LONG
+    }
 
   HRGN hRgn = CreatePolygonRgn(points, numPoints, ALTERNATE);
 
   POINT bubblePoints[] = {{162, 13}, {162, 14}, {163, 13}, {165, 13}, {166, 14}, {166, 16}, {165, 17}, {159, 17}, {158, 18}, {156, 18}, {155, 19}, {153, 19}, {152, 20}, {150, 20}, {149, 21}, {147, 21}, {146, 22}, {144, 22}, {143, 23}, {140, 23}, {139, 24}, {137, 24}, {136, 25}, {135, 25}, {134, 26}, {131, 26}, {130, 27}, {128, 27}, {127, 28}, {125, 28}, {124, 29}, {121, 29}, {120, 30}, {119, 30}, {118, 31}, {114, 31}, {113, 32}, {110, 32}, {109, 33}, {107, 33}, {105, 35}, {104, 34}, {103, 34}, {102, 35}, {101, 35}, {100, 36}, {98, 36}, {97, 37}, {95, 37}, {94, 38}, {91, 38}, {90, 39}, {88, 39}, {87, 40}, {86, 40}, {85, 41}, {82, 41}, {81, 42}, {78, 42}, {77, 43}, {75, 43}, {74, 44}, {72, 44}, {71, 45}, {69, 45}, {68, 46}, {66, 46}, {65, 47}, {62, 47}, {61, 48}, {59, 48}, {58, 49}, {56, 49}, {55, 50}, {54, 50}, {53, 51}, {50, 51}, {49, 52}, {47, 52}, {45, 54}, {42, 54}, {41, 55}, {40, 55}, {39, 56}, {37, 56}, {36, 57}, {35, 57}, {34, 58}, {31, 58}, {30, 59}, {28, 59}, {27, 60}, {25, 60}, {24, 61}, {22, 61}, {21, 62}, {19, 62}, {18, 63}, {17, 63}, {16, 64}, {15, 63}, {15, 62}, {14, 62}, {13, 63}, {12, 63}, {12, 65}, {13, 65}, {14, 66}, {13, 67}, {13, 70}, {12, 71}, {13, 72}, {13, 75}, {14, 76}, {14, 77}, {15, 78}, {15, 79}, {16, 80}, {16, 81}, {17, 82}, {17, 83}, {18, 84}, {18, 85}, {19, 86}, {19, 87}, {20, 88}, {20, 89}, {21, 90}, {21, 93}, {22, 93}, {23, 94}, {23, 95}, {24, 96}, {24, 97}, {25, 98}, {25, 99}, {26, 100}, {26, 101}, {27, 102}, {27, 104}, {29, 106}, {29, 107}, {30, 108}, {30, 110}, {32, 112}, {32, 113}, {34, 115}, {34, 117}, {36, 119}, {36, 121}, {38, 123}, {38, 124}, {39, 125}, {39, 126}, {40, 127}, {40, 128}, {41, 129}, {41, 130}, {42, 131}, {42, 132}, {45, 135}, {46, 135}, {47, 136}, {48, 136}, {49, 137}, {54, 137}, {55, 136}, {59, 136}, {60, 135}, {61, 136}, {62, 136}, {63, 135}, {64, 136}, {65, 136}, {66, 137}, {67, 137}, {68, 138}, {69, 138}, {71, 140}, {73, 140}, {76, 143}, {77, 143}, {78, 144}, {79, 144}, {80, 145}, {81, 145}, {83, 147}, {84, 147}, {85, 148}, {86, 148}, {86, 128}, {88, 126}, {91, 126}, {92, 125}, {95, 125}, {96, 124}, {98, 124}, {99, 123}, {102, 123}, {103, 122}, {105, 122}, {106, 121}, {109, 121}, {110, 120}, {113, 120}, {114, 119}, {116, 119}, {117, 118}, {120, 118}, {121, 117}, {124, 117}, {125, 116}, {127, 116}, {128, 115}, {131, 115}, {132, 114}, {134, 114}, {135, 113}, {138, 113}, {139, 112}, {142, 112}, {143, 111}, {145, 111}, {146, 110}, {149, 110}, {150, 109}, {152, 109}, {153, 108}, {155, 108}, {156, 107}, {158, 107}, {159, 106}, {162, 106}, {163, 105}, {165, 105}, {166, 104}, {169, 104}, {170, 103}, {171, 103}, {173, 101}, {173, 100}, {174, 99}, {174, 98}, {175, 97}, {175, 84}, {174, 83}, {174, 60}, {173, 59}, {173, 37}, {172, 36}, {172, 25}, {171, 24}, {171, 22}, {169, 20}, {169, 19}, {168, 18}, {167, 18}, {166, 17}, {167, 16}, {169, 16}, {169, 14}, {167, 14}, {166, 13}};
   int bubbleNumPoints = 263;
 
-  for (int i = 0; i < bubbleNumPoints; ++i) {
-    bubblePoints[i].x = static_cast<LONG>(bubblePoints[i].x * scale);
-    bubblePoints[i].y = static_cast<LONG>(bubblePoints[i].y * scale);
-  }
+  for (int i = 0; i < bubbleNumPoints; ++i)
+    {
+      bubblePoints[i].x = static_cast<LONG>(bubblePoints[i].x * scale);
+      bubblePoints[i].y = static_cast<LONG>(bubblePoints[i].y * scale);
+    }
 
   HRGN hRgnBubble = CreatePolygonRgn(bubblePoints, bubbleNumPoints, ALTERNATE);
   CombineRgn(hRgn, hRgn, hRgnBubble, RGN_OR);
@@ -221,7 +243,9 @@ void setClippingRegion(HWND hWnd){
   SetWindowRgn(hWnd, hRgn, 1);
 }
 
-std::wstring getDpsAsString() {
+std::wstring
+getDpsAsString()
+{
   updateStats();
 
   if (hasNoLogs())
@@ -242,7 +266,9 @@ std::wstring getDpsAsString() {
   return std::to_wstring(dps);
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK
+WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
   HDC hdc;
   PAINTSTRUCT ps;
   static Bitmap* bitmap1 = NULL;
@@ -251,213 +277,238 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
   static Bitmap* bitmapZ = NULL;
   static Bitmap* bitmapU = NULL;
 
-  switch (message) {
-  case WM_CREATE: {
-    // Initialize GDI+
-    Status startupStatus = GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-    if (startupStatus != Ok) {
-      MessageBox(hwnd, L"Failed to initialize GDI+.", L"Error", MB_OK);
-      return -1;
-    }
-    std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
-    std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
-    std::wstring imageBpath = std::wstring(tempDir) + L"__girlb.png";
-    std::wstring imageZpath = std::wstring(tempDir) + L"__girlz.png";
-    std::wstring imageUpath = std::wstring(tempDir) + L"__bubble200.png";
+  switch (message)
+    {
+    case WM_CREATE:
+      {
+        // Initialize GDI+
+        Status startupStatus = GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+        if (startupStatus != Ok) {
+          MessageBox(hwnd, L"Failed to initialize GDI+.", L"Error", MB_OK);
+          return -1;
+        }
+        std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
+        std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
+        std::wstring imageBpath = std::wstring(tempDir) + L"__girlb.png";
+        std::wstring imageZpath = std::wstring(tempDir) + L"__girlz.png";
+        std::wstring imageUpath = std::wstring(tempDir) + L"__bubble200.png";
 
-    log(L"Image 1 Path: " + image1path);
+        log(L"Image 1 Path: " + image1path);
 
-    bitmap1 = Bitmap::FromFile(image1path.c_str());
-    if (bitmap1->GetLastStatus() != Ok) {
-      logError(L"Failed to load image1.png!");
-      MessageBox(hwnd, L"Failed to load image1.png.", L"Error", MB_OK);
-      return -1;
-    }
+        bitmap1 = Bitmap::FromFile(image1path.c_str());
+        if (bitmap1->GetLastStatus() != Ok)
+          {
+            logError(L"Failed to load image1.png!");
+            MessageBox(hwnd, L"Failed to load image1.png.", L"Error", MB_OK);
+            return -1;
+          }
 
-    bitmap2 = Bitmap::FromFile(image2path.c_str());
-    if (bitmap2->GetLastStatus() != Ok) {
-      logError(L"Failed to load image2.png!");
-      MessageBox(hwnd, L"Failed to load image2.png.", L"Error", MB_OK);
-      return -1;
-    }
+        bitmap2 = Bitmap::FromFile(image2path.c_str());
+        if (bitmap2->GetLastStatus() != Ok)
+          {
+            logError(L"Failed to load image2.png!");
+            MessageBox(hwnd, L"Failed to load image2.png.", L"Error", MB_OK);
+            return -1;
+          }
 
-    bitmapB = Bitmap::FromFile(imageBpath.c_str());
-    if (bitmapB->GetLastStatus() != Ok) {
-      logError(L"Failed to load imageB.png!");
-      MessageBox(hwnd, L"Failed to load imageB.png.", L"Error", MB_OK);
-      return -1;
-    }
+        bitmapB = Bitmap::FromFile(imageBpath.c_str());
+        if (bitmapB->GetLastStatus() != Ok)
+          {
+            logError(L"Failed to load imageB.png!");
+            MessageBox(hwnd, L"Failed to load imageB.png.", L"Error", MB_OK);
+            return -1;
+          }
 
-    bitmapZ = Bitmap::FromFile(imageZpath.c_str());
-    if (bitmapZ->GetLastStatus() != Ok) {
-      logError(L"Failed to load imageZ.png!");
-      MessageBox(hwnd, L"Failed to load imageZ.png.", L"Error", MB_OK);
-      return -1;
-    }
+        bitmapZ = Bitmap::FromFile(imageZpath.c_str());
+        if (bitmapZ->GetLastStatus() != Ok)
+          {
+            logError(L"Failed to load imageZ.png!");
+            MessageBox(hwnd, L"Failed to load imageZ.png.", L"Error", MB_OK);
+            return -1;
+          }
 
-    bitmapU = Bitmap::FromFile(imageUpath.c_str());
-    if (bitmapU->GetLastStatus() != Ok) {
-      logError(L"Failed to load imageU.png!");
-      MessageBox(hwnd, L"Failed to load imageU.png.", L"Error", MB_OK);
-      return -1;
-    }
+        bitmapU = Bitmap::FromFile(imageUpath.c_str());
+        if (bitmapU->GetLastStatus() != Ok)
+          {
+            logError(L"Failed to load imageU.png!");
+            MessageBox(hwnd, L"Failed to load imageU.png.", L"Error", MB_OK);
+            return -1;
+          }
 
-    //Set window as layered.
-    SetWindowLongPtr(hwnd, GWL_EXSTYLE,
-                     GetWindowLongPtr(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+        //Set window as layered.
+        SetWindowLongPtr(hwnd, GWL_EXSTYLE,
+                         GetWindowLongPtr(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 
-    // Make the window fully transparent.
-    // SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
-    SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
-    SetTimer(hwnd, 1, animation_delay, nullptr);
-    break;
-  }
-  case WM_PAINT: {
-    hdc = BeginPaint(hwnd, &ps);
-    HDC hdcMem = CreateCompatibleDC(hdc); // Create an off-screen DC
-    RECT rect;
-    GetClientRect(hwnd, &rect);
-    HBITMAP hbmMem = CreateCompatibleBitmap(hdc, rect.right - rect.left, rect.bottom - rect.top); // Create an off-screen bitmap
-    HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem); // Select the bitmap into the off-screen DC
-    Graphics graphicsMem(hdcMem); // Create a Graphics object for the off-screen DC
-
-    // 1. Redraw the background (using the color key color)
-    HBRUSH hbrBackground = CreateSolidBrush(RGB(1, 1, 1)); // Assuming your color key is RGB(1,1,1)
-    FillRect(hdcMem, &rect, hbrBackground);
-    DeleteObject(hbrBackground);
-
-    //Draw the image onto the off-screen DC.
-    if (currentImage == 0) {
-      graphicsMem.DrawImage(bitmap1, 0 - bubbleX, 0 - bubbleY,
-                            static_cast<LONG>(bitmap1->GetWidth() * scale),
-                            static_cast<LONG>(bitmap1->GetHeight() * scale));
-    } else if (currentImage == 1) {
-      graphicsMem.DrawImage(bitmap2, 0 - bubbleX, 0 - bubbleY,
-                            static_cast<LONG>(bitmap2->GetWidth() * scale),
-                            static_cast<LONG>(bitmap2->GetHeight() * scale));
-    } else if (currentImage == 2) {
-      graphicsMem.DrawImage(bitmapB, 0 - bubbleX, 0 - bubbleY,
-                            static_cast<LONG>(bitmapB->GetWidth() * scale),
-                            static_cast<LONG>(bitmapB->GetHeight() * scale));
-    } else if (currentImage == 3) {
-      graphicsMem.DrawImage(bitmapZ, 0 - bubbleX, 0 - bubbleY,
-                            static_cast<LONG>(bitmapZ->GetWidth() * scale),
-                            static_cast<LONG>(bitmapZ->GetHeight() * scale));
-    }
-
-    graphicsMem.DrawImage(bitmapU, 0, 0,
-                          static_cast<LONG>(bitmapU->GetWidth() * scale),
-                          static_cast<LONG>(bitmapU->GetHeight() * scale));
-
-    // --- Drawing the text ---
-    FontFamily fontFamily(L"Arial"); // You can choose a different font
-    Font font(&fontFamily, 30 * scale, FontStyleRegular, UnitPixel); // Adjust size as needed
-    SolidBrush textBrush(Color(255, 0, 0, 0)); // Black color (ARGB)
-    PointF textPosition(40 * scale, 70 * scale); // Adjust position within the bubble
-
-    std::wstring textToDraw = getDpsAsString();
-    graphicsMem.DrawString(
-        textToDraw.c_str(),
-        -1, // Draw the entire string
-        &font,
-        textPosition,
-        &textBrush
-    );
-
-    FontFamily fontFamily2(L"Arial"); // You can choose a different font
-    Font font2(&fontFamily2, 14 * scale, FontStyleRegular, UnitPixel); // Adjust size as needed
-    SolidBrush textBrush2(Color(255, 0, 0, 0)); // Black color (ARGB)
-    PointF textPosition2(130 * scale, 60 * scale); // Adjust position within the bubble
-
-    std::wstring textToDraw2 = sleeping ? L"zzz" : L"dps";
-    graphicsMem.DrawString(
-        textToDraw2.c_str(),
-        -1, // Draw the entire string
-        &font2,
-        textPosition2,
-        &textBrush2
-    );
-    // --- End of text drawing ---
-
-    // Copy the entire off-screen buffer to the screen
-    BitBlt(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, hdcMem, 0, 0, SRCCOPY);
-
-    // Clean up
-    SelectObject(hdcMem, hbmOld);
-    DeleteObject(hbmMem);
-    DeleteDC(hdcMem);
-
-    EndPaint(hwnd, &ps);
-    break;
-  }
-  case WM_TIMER: {
-    if (wParam == 1) {
-      if (currentImage > 1)
-        currentImage = 0;
-
-      currentImage ^= 1;
-
-      int randomInRange = (rand() % 100) + 1;
-      if (randomInRange < 10)
-        currentImage = 2;
-
-      if (sleeping == 1)
-        currentImage = 3;
-
-      InvalidateRect(hwnd, nullptr, FALSE);
-      UpdateWindow(hwnd);
-    }
-    break;
-  }
-  case WM_DROPFILES: {
-    HDROP hDrop = (HDROP)wParam;
-    UINT fileCount = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
-    std::vector<wchar_t> filePathBuffer(MAX_PATH);
-
-    for (UINT i = 0; i < fileCount; ++i) {
-      if (DragQueryFile(hDrop, i, filePathBuffer.data(), MAX_PATH) > 0) {
-        // std::wcout << L"Dropped file: " << filePathBuffer.data() << std::endl;
-        // Process the file path here (e.g., open the file)
-        log(L"Dropped file: " + std::wstring(filePathBuffer.data()));
-        addToConfig(std::wstring(filePathBuffer.data()));
-      } else {
-        logError(L"Error getting dropped file path.");
+        // Make the window fully transparent.
+        // SetLayeredWindowAttributes(hwnd, 0, 0, LWA_ALPHA);
+        SetLayeredWindowAttributes(hwnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
+        SetTimer(hwnd, 1, animation_delay, nullptr);
+        break;
       }
+    case WM_PAINT:
+      {
+        hdc = BeginPaint(hwnd, &ps);
+        HDC hdcMem = CreateCompatibleDC(hdc); // Create an off-screen DC
+        RECT rect;
+        GetClientRect(hwnd, &rect);
+        HBITMAP hbmMem = CreateCompatibleBitmap(hdc, rect.right - rect.left, rect.bottom - rect.top); // Create an off-screen bitmap
+        HBITMAP hbmOld = (HBITMAP)SelectObject(hdcMem, hbmMem); // Select the bitmap into the off-screen DC
+        Graphics graphicsMem(hdcMem); // Create a Graphics object for the off-screen DC
+
+        // 1. Redraw the background (using the color key color)
+        HBRUSH hbrBackground = CreateSolidBrush(RGB(1, 1, 1)); // Assuming your color key is RGB(1,1,1)
+        FillRect(hdcMem, &rect, hbrBackground);
+        DeleteObject(hbrBackground);
+
+        //Draw the image onto the off-screen DC.
+        if (currentImage == 0)
+          {
+            graphicsMem.DrawImage(bitmap1, 0 - bubbleX, 0 - bubbleY,
+                                  static_cast<LONG>(bitmap1->GetWidth() * scale),
+                                  static_cast<LONG>(bitmap1->GetHeight() * scale));
+          }
+        else if (currentImage == 1)
+          {
+            graphicsMem.DrawImage(bitmap2, 0 - bubbleX, 0 - bubbleY,
+                                  static_cast<LONG>(bitmap2->GetWidth() * scale),
+                                  static_cast<LONG>(bitmap2->GetHeight() * scale));
+          }
+        else if (currentImage == 2)
+          {
+            graphicsMem.DrawImage(bitmapB, 0 - bubbleX, 0 - bubbleY,
+                                  static_cast<LONG>(bitmapB->GetWidth() * scale),
+                                  static_cast<LONG>(bitmapB->GetHeight() * scale));
+          }
+        else if (currentImage == 3)
+          {
+            graphicsMem.DrawImage(bitmapZ, 0 - bubbleX, 0 - bubbleY,
+                                  static_cast<LONG>(bitmapZ->GetWidth() * scale),
+                                  static_cast<LONG>(bitmapZ->GetHeight() * scale));
+          }
+
+        graphicsMem.DrawImage(bitmapU, 0, 0,
+                              static_cast<LONG>(bitmapU->GetWidth() * scale),
+                              static_cast<LONG>(bitmapU->GetHeight() * scale));
+
+        // --- Drawing the text ---
+        FontFamily fontFamily(L"Arial"); // You can choose a different font
+        Font font(&fontFamily, 30 * scale, FontStyleRegular, UnitPixel); // Adjust size as needed
+        SolidBrush textBrush(Color(255, 0, 0, 0)); // Black color (ARGB)
+        PointF textPosition(40 * scale, 70 * scale); // Adjust position within the bubble
+
+        std::wstring textToDraw = getDpsAsString();
+        graphicsMem.DrawString(
+                               textToDraw.c_str(),
+                               -1, // Draw the entire string
+                               &font,
+                               textPosition,
+                               &textBrush
+                               );
+
+        FontFamily fontFamily2(L"Arial"); // You can choose a different font
+        Font font2(&fontFamily2, 14 * scale, FontStyleRegular, UnitPixel); // Adjust size as needed
+        SolidBrush textBrush2(Color(255, 0, 0, 0)); // Black color (ARGB)
+        PointF textPosition2(130 * scale, 60 * scale); // Adjust position within the bubble
+
+        std::wstring textToDraw2 = sleeping ? L"zzz" : L"dps";
+        graphicsMem.DrawString(
+                               textToDraw2.c_str(),
+                               -1, // Draw the entire string
+                               &font2,
+                               textPosition2,
+                               &textBrush2
+                               );
+        // --- End of text drawing ---
+
+        // Copy the entire off-screen buffer to the screen
+        BitBlt(hdc, 0, 0, rect.right - rect.left, rect.bottom - rect.top, hdcMem, 0, 0, SRCCOPY);
+
+        // Clean up
+        SelectObject(hdcMem, hbmOld);
+        DeleteObject(hbmMem);
+        DeleteDC(hdcMem);
+
+        EndPaint(hwnd, &ps);
+        break;
+      }
+    case WM_TIMER:
+      {
+        if (wParam == 1)
+          {
+            if (currentImage > 1)
+              currentImage = 0;
+
+            currentImage ^= 1;
+
+            int randomInRange = (rand() % 100) + 1;
+            if (randomInRange < 10)
+              currentImage = 2;
+
+            if (sleeping == 1)
+              currentImage = 3;
+
+            InvalidateRect(hwnd, nullptr, FALSE);
+            UpdateWindow(hwnd);
+          }
+        break;
+      }
+    case WM_DROPFILES:
+      {
+        HDROP hDrop = (HDROP)wParam;
+        UINT fileCount = DragQueryFile(hDrop, 0xFFFFFFFF, nullptr, 0);
+        std::vector<wchar_t> filePathBuffer(MAX_PATH);
+
+        for (UINT i = 0; i < fileCount; ++i)
+          {
+            if (DragQueryFile(hDrop, i, filePathBuffer.data(), MAX_PATH) > 0)
+              {
+                // std::wcout << L"Dropped file: " << filePathBuffer.data() << std::endl;
+                // Process the file path here (e.g., open the file)
+                log(L"Dropped file: " + std::wstring(filePathBuffer.data()));
+                addToConfig(std::wstring(filePathBuffer.data()));
+              }
+            else
+              {
+                logError(L"Error getting dropped file path.");
+              }
+          }
+        DragFinish(hDrop); // Release the HDROP handle
+        break;
+      }
+    case WM_LBUTTONDOWN:
+      sleeping ^= 1;
+      break;
+    case WM_RBUTTONUP:
+      PostQuitMessage(0);
+      break;
+    case WM_DESTROY:
+      KillTimer(hwnd, 1);
+      delete bitmap1;
+      delete bitmap2;
+      delete bitmapB;
+      delete bitmapZ;
+      delete bitmapU;
+      GdiplusShutdown(gdiplusToken);
+      PostQuitMessage(0);
+      break;
+    default:
+      return DefWindowProc(hwnd, message, wParam, lParam);
     }
-    DragFinish(hDrop); // Release the HDROP handle
-    break;
-  }
-  case WM_LBUTTONDOWN:
-    sleeping ^= 1;
-    break;
-  case WM_RBUTTONUP:
-    PostQuitMessage(0);
-    break;
-  case WM_DESTROY:
-    KillTimer(hwnd, 1);
-    delete bitmap1;
-    delete bitmap2;
-    delete bitmapB;
-    delete bitmapZ;
-    delete bitmapU;
-    GdiplusShutdown(gdiplusToken);
-    PostQuitMessage(0);
-    break;
-  default:
-    return DefWindowProc(hwnd, message, wParam, lParam);
-  }
   return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
+int WINAPI
+WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
+{
   log(L"dpsgirl start");
   srand(static_cast<unsigned int>(time(0)));
 
   // Define a temporary directory (you might want to use GetTempPath)
-  if (GetTempPathW(MAX_PATH, tempDir) == 0) {
-    logError(L"GetTempPathW failed");
-    return -1;
-  }
+  if (GetTempPathW(MAX_PATH, tempDir) == 0)
+    {
+      logError(L"GetTempPathW failed");
+      return -1;
+    }
 
   std::wstring image1path = std::wstring(tempDir) + L"__girl1.png";
   std::wstring image2path = std::wstring(tempDir) + L"__girl2.png";
@@ -563,10 +614,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow) {
   setClippingRegion(hwnd);
 
   MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
+  while (GetMessage(&msg, nullptr, 0, 0))
+    {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+    }
 
   DeleteFileW(image1path.c_str());
   DeleteFileW(image2path.c_str());
