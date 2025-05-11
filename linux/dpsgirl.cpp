@@ -20,33 +20,54 @@ float scale = 1.0f;
 int bubbleX = -30;
 int bubbleY = -60;
 
-// Function to get the current timestamp for logging (similar)
-std::wstring GetTimestamp() { return L"fake"; /* ... */ }
+// Function to get the current timestamp for logging
+std::wstring GetTimestamp() {
+  auto now = std::chrono::system_clock::now();
+  auto now_c = std::chrono::system_clock::to_time_t(now);
+  std::tm now_tm;
+#ifdef _WIN32
+  localtime_s(&now_tm, &now_c);
+#else
+  localtime_r(&now_c, &now_tm);
+#endif
+  std::wstringstream wss;
+  wss.imbue(std::locale("")); // Use the user's default locale for wide characters
+  wss << std::put_time(&now_tm, L"%Y-%m-%d %H:%M:%S");
+  return wss.str();
+}
+
+int spit(std::string fileName, std::wstring msg)
+{
+  std::wofstream file(fileName, std::ios::app);
+  if (file.is_open()) {
+    file << msg;
+    std::wcerr << msg;
+    file.close();
+  }
+  return 0;
+}
+
+int spit(std::string fileName, std::string msg)
+{
+  std::ofstream file(fileName, std::ios::app);
+  if (file.is_open()) {
+    file << msg;
+    std::cerr << msg;
+    file.close();
+  }
+  return 0;
+}
 
 int log(std::wstring msg) {
-  std::wofstream logFile("dpsgirl.log", std::ios::app);
-  if (logFile.is_open()) {
-    logFile << msg << std::endl;
-    std::wcerr << msg << std::endl;
-    logFile.close();
-  } else {
-    std::wcerr << L"Unable to open file for writing." << std::endl;
-  }
-
-  return 1;
+  return spit("dpsgirl.log", GetTimestamp() + L"-" + msg + L"\n");
 }
 
 int log(std::string msg) {
-  std::ofstream logFile("dpsgirl.log", std::ios::app);
-  if (logFile.is_open()) {
-    logFile << msg << std::endl;
-    std::cerr << msg << std::endl;
-    logFile.close();
-  } else {
-    std::cerr << L"Unable to open file for writing." << std::endl;
-  }
-
-  return 1;
+  std::wstring wstr = GetTimestamp();
+  char buffer[100];
+  std::wcstombs(buffer, wstr.c_str(), sizeof(buffer));
+  std::string timestamp(buffer);
+  return spit("dpsgirl.log", timestamp + " - " + msg + "\n");
 }
 
 void logError(std::wstring msg) {
