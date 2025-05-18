@@ -20,9 +20,9 @@
 int animation_delay = 100;
 int currentImage = 0;
 int sleeping = 0;
-float scale = 0.5f;
-int bubbleX = -30;
-int bubbleY = -60;
+float scale = 0.4f;
+int bubbleX = (-30 * scale);
+int bubbleY = (-60 * scale);
 int scaled_image_width;
 int scaled_image_height;
 int x;

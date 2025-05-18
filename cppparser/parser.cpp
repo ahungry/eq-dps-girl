@@ -208,7 +208,7 @@ std::vector<Hit> getHits() {
     std::vector<Hit> hits;
     std::vector<std::string> lines = slurpOnceAsLines(getNewestLogFile());
     std::regex damageRegex(".* points of .*damage.*");
-    std::regex exclusionRegex("(\\] a|healed|YOU|absorbed)");
+    std::regex exclusionRegex("(\\] a|healed|YOU|absorbed|shielded)");
     std::regex extractionRegex("\\[(.*?)\\][^\\d]* (\\d+)"); // Match date in [], then a space and digits
 
     for (const auto& line : lines) {
