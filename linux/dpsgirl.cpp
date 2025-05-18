@@ -20,7 +20,7 @@
 int animation_delay = 100;
 int currentImage = 0;
 int sleeping = 0;
-float scale = 1.0f;
+float scale = 0.5f;
 int bubbleX = -30;
 int bubbleY = -60;
 int scaled_image_width;
@@ -112,14 +112,32 @@ load_image(const std::wstring& filename)
       // Basic conversion, might need more robust handling
       utf8_filename += static_cast<char>(wc);
     }
-  cairo_surface_t* surface = cairo_image_surface_create_from_png(utf8_filename.c_str());
-  if (cairo_surface_status(surface) != CAIRO_STATUS_SUCCESS)
+  cairo_surface_t* source_surface = cairo_image_surface_create_from_png(utf8_filename.c_str());
+  if (cairo_surface_status(source_surface) != CAIRO_STATUS_SUCCESS)
     {
       logError(L"Failed to load image: " + filename);
-      if (surface) cairo_surface_destroy(surface);
+      if (source_surface) cairo_surface_destroy(source_surface);
       return nullptr;
     }
-  return surface;
+  cairo_surface_t* target_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+                                                               (int)350,
+                                                               (int)384);
+  if (cairo_surface_status(target_surface) != CAIRO_STATUS_SUCCESS)
+    {
+      logError(L"Failed to load image: " + filename);
+      if (target_surface) cairo_surface_destroy(target_surface);
+      return nullptr;
+    }
+
+  cairo_t* cr = nullptr;
+  cr = cairo_create(target_surface);
+  cairo_scale(cr, scale, scale);
+  cairo_set_source_surface(cr, source_surface, 0, 0);
+  cairo_paint(cr);
+  cairo_destroy(cr);
+  cr = nullptr;
+
+  return target_surface;
 }
 
 std::wstring
