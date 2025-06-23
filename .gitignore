@@ -1,0 +1,10 @@
+/readme.txt
+/*.exe
+/*.xcf
+*.zip
+*.so
+*.o
+*.bin
+*.log
+*.txt
+dpsgirl.conf
