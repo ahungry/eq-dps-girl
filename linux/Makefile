@@ -2,9 +2,9 @@
 
 # Compiler and linker settings
 CC = g++
-CFLAGS = -Wall -Wextra -O2 -DUNICODE -D_UNICODE $(shell pkg-config --cflags cairo gtk+-3.0 webkit2gtk-4.0)
-CFLAGS_DEBUG = -Wall -Wextra -g -O0 $(shell pkg-config --cflags cairo gtk+-3.0 webkit2gtk-4.0)
-LDFLAGS = $(shell pkg-config --libs cairo gtk+-3.0 webkit2gtk-4.0)
+CFLAGS = -Wall -Wextra -O2 -DUNICODE -D_UNICODE $(shell pkg-config --cflags cairo gtk+-3.0)
+CFLAGS_DEBUG = -Wall -Wextra -g -O0 $(shell pkg-config --cflags cairo gtk+-3.0)
+LDFLAGS = $(shell pkg-config --libs cairo gtk+-3.0)
 
 # Source files
 SOURCES = dpsgirl.cpp
@@ -15,7 +15,6 @@ INCLUDE_DIRS = -I. # Add any necessary include paths
 # Resource file
 # RC_FILE = dpsgirl.rc
 # RES_OBJ = dpsgirl.res # Compiled resource object
-# WINDRES = x86_64-w64-mingw32-windres # Use the MinGW resource compiler
 
 # Output executable name
 TARGET = dpsgirl.bin
@@ -33,7 +32,7 @@ release: $(TARGET)
 debug:
 	$(CC) $(CFLAGS_DEBUG) $(INCLUDE_DIRS) -c $(SOURCES)
 	$(RES_OBJ): $(RC_FILE)
-		$(WINDRES) $(RC_FILE) -o $(RES_OBJ)
+		$(RC_FILE) -o $(RES_OBJ)
 	$(CC) $(CFLAGS_DEBUG) $(INCLUDE_DIRS) $(OBJECTS) $(RES_OBJ) $(LDFLAGS) -o $(TARGET) -g
 
 # Rule to link the object files and resources to create the executable
@@ -46,7 +45,7 @@ $(TARGET): $(OBJECTS) $(RES_OBJ)
 
 # Rule to compile the resource file
 $(RES_OBJ): $(RC_FILE)
-	$(WINDRES) --output-format=coff $(RC_FILE) -o $(RES_OBJ)
+	--output-format=coff $(RC_FILE) -o $(RES_OBJ)
 
 # Clean rule: Remove generated files
 clean:
